@@ -109,12 +109,12 @@ internal sealed class LauncherForm : Form
             if (!await IsThemeSessionReadyAsync())
             {
                 var script = Path.Combine(_appRoot, "engine", "scripts", "start-dream-skin.ps1");
-                var result = await RunPowerShellAsync(script, "-Port", "9335", "-PromptRestart");
+                var result = await RunPowerShellAsync(script, "-PromptRestart");
                 if (result.ExitCode != 0 && IsDelayedInjectorExit(result.Error, result.Output))
                 {
                     _status.Text = "旧热切换服务正在退出，即将自动重试…";
                     await Task.Delay(2500);
-                    result = await RunPowerShellAsync(script, "-Port", "9335", "-PromptRestart");
+                    result = await RunPowerShellAsync(script, "-PromptRestart");
                 }
                 if (result.ExitCode != 0)
                     throw new InvalidOperationException(LastUsefulLine(result.Error, result.Output));
