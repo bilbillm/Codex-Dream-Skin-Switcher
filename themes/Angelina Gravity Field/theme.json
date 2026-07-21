@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "preset-angelina-gravity-field",
+  "name": "Angelina Gravity Field",
+  "skinRevision": "3.1.4-angelina",
+  "visualRevision": 14,
+  "variant": "angelina",
+  "brandSubtitle": "SR02 / GRAVITY FIELD",
+  "tagline": "重力场已稳定，博士。今天也从轻一点的地方开始吧。",
+  "projectPrefix": "PROJECT / ",
+  "projectLabel": "FIELD ASSIGNMENT / 选择项目",
+  "statusText": "ARTS LINK · STABLE",
+  "quote": "A slow messenger gets caught by the wind.",
+  "image": "angelina-hero.png",
+  "taskImage": "angelina-thread-bg.jpg",
+  "appearance": "light",
+  "art": {
+    "focusX": 0.68,
+    "focusY": 0.42,
+    "safeArea": "left",
+    "taskMode": "ambient"
+  },
+  "palette": {
+    "accent": "#9e2f2e"
+  }
+}

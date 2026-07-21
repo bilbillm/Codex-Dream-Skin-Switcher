@@ -1,0 +1,41 @@
+name: Theme proposal
+description: Propose an original or redistributable Dream Skin theme.
+title: "[Theme]: "
+labels: [theme]
+body:
+  - type: input
+    id: id
+    attributes:
+      label: Proposed stable theme ID
+      placeholder: my-original-theme
+    validations:
+      required: true
+  - type: dropdown
+    id: appearance
+    attributes:
+      label: Appearance
+      options: [light, dark, auto]
+    validations:
+      required: true
+  - type: textarea
+    id: provenance
+    attributes:
+      label: Asset provenance and redistribution permission
+      description: Explain who created every image and why this repository may redistribute it.
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Home, task, panel, menu, and contrast screenshots
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Validation
+      options:
+        - label: Images use local relative paths and contain no executable content.
+          required: true
+        - label: I tested light/dark contrast, terminal interaction, and high DPI.
+          required: true

@@ -1,0 +1,35 @@
+# .NET build output
+**/bin/
+**/obj/
+*.user
+*.suo
+
+# Release output
+artifacts/
+release-staging/
+
+# Local Dream Skin runtime state
+/state.json
+/state.stale-*.json
+/active-theme/
+/images/
+/injector.log
+/injector-error.log
+/verify.log
+/paused
+
+# IDE and OS files
+.vs/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Secrets and local configuration
+.env
+.env.*
+auth.json
+config.toml
+*.key
+*.pem

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "preset-angelina-midnight-gravity",
+  "name": "Angelina Midnight Gravity",
+  "skinRevision": "3.1.4-angelina",
+  "visualRevision": 5,
+  "variant": "angelina",
+  "brandSubtitle": "SR02 / MIDNIGHT GRAVITY",
+  "tagline": "夜航重力场已稳定，博士。",
+  "projectPrefix": "NIGHT OPS / ",
+  "projectLabel": "MIDNIGHT ASSIGNMENT / 选择项目",
+  "statusText": "ARTS LINK · NIGHT STABLE",
+  "quote": "The moon keeps every slow messenger in sight.",
+  "image": "background.png",
+  "taskImage": "task-background.jpg",
+  "appearance": "dark",
+  "art": {
+    "focusX": 0.74,
+    "focusY": 0.42,
+    "safeArea": "left",
+    "taskMode": "ambient"
+  },
+  "palette": {
+    "accent": "#c85b55"
+  }
+}
