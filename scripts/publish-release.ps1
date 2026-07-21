@@ -110,16 +110,17 @@ $metadataExit = Invoke-Native { gh repo edit $Repository --enable-issues --enabl
 if ($metadataExit -ne 0) { throw 'Repository metadata update failed.' }
 
 $releaseExists = (Invoke-Native -Quiet { gh release view $tag --repo $Repository }) -eq 0
-if ($releaseExists) {
-  throw "Release $tag already exists; refusing to overwrite it automatically."
+if (-not $releaseExists) {
+  $releaseExit = Invoke-Native { gh release create $tag `
+    --repo $Repository `
+    --title "$tag - First public release / 首个公开版本" `
+    --notes-file $notesPath `
+    --verify-tag }
+  if ($releaseExit -ne 0) { throw "GitHub Release $tag creation failed." }
 }
 
-$releaseExit = Invoke-Native { gh release create $tag $zipPath $hashPath `
-  --repo $Repository `
-  --title "$tag - First public release / 首个公开版本" `
-  --notes-file $notesPath `
-  --verify-tag }
-if ($releaseExit -ne 0) { throw "GitHub Release $tag creation failed." }
+$uploadExit = Invoke-Native { gh release upload $tag $zipPath $hashPath --repo $Repository --clobber }
+if ($uploadExit -ne 0) { throw "GitHub Release $tag asset upload failed." }
 
 $repoViewExit = Invoke-Native { gh repo view $Repository --json nameWithOwner,url,visibility,defaultBranchRef }
 if ($repoViewExit -ne 0) { throw 'Final repository verification failed.' }
