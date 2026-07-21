@@ -143,7 +143,7 @@ internal sealed class LauncherForm : Form
             _busy = false;
             ControlBox = true;
             _retryButton.Enabled = true;
-            _switcherButton.Enabled = File.Exists(Path.Combine(_appRoot, "CodexThemeSwitcher.exe"));
+            _switcherButton.Enabled = File.Exists(Environment.ProcessPath);
         }
 
         if (closeAfterLaunch)
@@ -282,8 +282,8 @@ internal sealed class LauncherForm : Form
 
     private void OpenThemeSwitcher()
     {
-        var path = Path.Combine(_appRoot, "CodexThemeSwitcher.exe");
-        if (!File.Exists(path)) return;
+        var path = Environment.ProcessPath;
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return;
         Process.Start(new ProcessStartInfo(path) { UseShellExecute = true, WorkingDirectory = _appRoot });
     }
 

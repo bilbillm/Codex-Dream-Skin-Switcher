@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Versions follow Semantic Versioning.
 
+## [0.1.1] - 2026-07-21
+
+### Changed
+
+- Unified the launcher and theme switcher under the single `Codex自定义主题.exe` entry point.
+- Made launch mode explicit through `--launch`; opening the executable without arguments shows the theme switcher.
+- Updated shortcut installation and release verification to reject obsolete duplicate executables.
+
 ## [0.1.0] - 2026-07-20
 
 ### Added

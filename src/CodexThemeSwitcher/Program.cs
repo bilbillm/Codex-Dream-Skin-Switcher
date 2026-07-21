@@ -23,9 +23,7 @@ internal static class Program
         }
 
         ApplicationConfiguration.Initialize();
-        var executableName = Path.GetFileNameWithoutExtension(Environment.ProcessPath ?? string.Empty);
-        var launchMode = args.Any(arg => string.Equals(arg, "--launch", StringComparison.OrdinalIgnoreCase)) ||
-            executableName.Contains("启动器", StringComparison.OrdinalIgnoreCase);
+        var launchMode = args.Any(arg => string.Equals(arg, "--launch", StringComparison.OrdinalIgnoreCase));
         Application.Run(launchMode ? new LauncherForm(appRoot) : new MainForm(appRoot));
     }
 }

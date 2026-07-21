@@ -8,16 +8,16 @@ $ErrorActionPreference = 'Stop'
 
 function Get-BundleRoot {
   $candidate = [System.IO.Path]::GetFullPath($PSScriptRoot)
-  if (Test-Path -LiteralPath (Join-Path $candidate 'CodexThemeSwitcher.exe') -PathType Leaf) {
+  if (Test-Path -LiteralPath (Join-Path $candidate 'Codex自定义主题.exe') -PathType Leaf) {
     return $candidate
   }
 
   $parent = [System.IO.Path]::GetFullPath((Split-Path -Parent $candidate))
-  if (Test-Path -LiteralPath (Join-Path $parent 'CodexThemeSwitcher.exe') -PathType Leaf) {
+  if (Test-Path -LiteralPath (Join-Path $parent 'Codex自定义主题.exe') -PathType Leaf) {
     return $parent
   }
 
-  throw 'CodexThemeSwitcher.exe was not found beside this script or in its parent directory.'
+  throw 'Codex自定义主题.exe was not found beside this script or in its parent directory.'
 }
 
 function New-Shortcut {
@@ -46,7 +46,7 @@ function New-Shortcut {
 }
 
 $bundleRoot = Get-BundleRoot
-$executable = Join-Path $bundleRoot 'CodexThemeSwitcher.exe'
+$executable = Join-Path $bundleRoot 'Codex自定义主题.exe'
 $shell = New-Object -ComObject WScript.Shell
 $created = [System.Collections.Generic.List[string]]::new()
 

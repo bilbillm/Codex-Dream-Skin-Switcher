@@ -6,7 +6,7 @@ English | [简体中文](README.md)
 
 # Codex Dream Skin Switcher
 
-A Windows GUI for previewing, importing, hot-switching, and one-click launching custom Codex Dream Skin themes. Version `v0.1.0` includes the Angelina Gravity Field light theme and Angelina Midnight Gravity dark theme, while preserving the verification and rollback boundaries of the Dream Skin runtime.
+A Windows GUI for previewing, importing, hot-switching, and one-click launching custom Codex Dream Skin themes. Version `v0.1.1` includes the Angelina Gravity Field light theme and Angelina Midnight Gravity dark theme, while preserving the verification and rollback boundaries of the Dream Skin runtime.
 
 [![Release](https://img.shields.io/github/v/release/bilbillm/Codex-Dream-Skin-Switcher?display_name=tag)](https://github.com/bilbillm/Codex-Dream-Skin-Switcher/releases/latest)
 [![License: MIT](https://img.shields.io/badge/code%20license-MIT-green.svg)](LICENSE)
@@ -92,7 +92,7 @@ Both themes include continuous wallpaper, frosted-glass side/right/bottom panels
 - Node.js 22 or newer; `24.7.0` is the validated version.
 - Windows PowerShell 5.1, included with Windows.
 - The release GUI is self-contained and does not require a separately installed .NET Desktop Runtime.
-- The `v0.1.0` self-contained package pins Windows Desktop Runtime `10.0.10`.
+- The `v0.1.1` self-contained package pins Windows Desktop Runtime `10.0.10`.
 
 ### Building from source
 
@@ -102,7 +102,7 @@ Both themes include continuous wallpaper, frosted-glass side/right/bottom panels
 - PowerShell 7 may be used for development commands, but the GUI deliberately launches Dream Skin startup scripts through Windows PowerShell 5.1. PowerShell 7 automatically converts ISO JSON timestamps into `DateTime`, whose localized string form breaks the runtime's strict process-start identity comparison.
 
 > [!NOTE]
-> Version `v0.1.0` was verified against `OpenAI.Codex_26.715.7063.0_x64__2p2nqsd0c76g0`. The runtime discovers the registered official Store package dynamically; this exact version is not hard-coded as a launch target.
+> Version `v0.1.1` was verified against `OpenAI.Codex_26.715.7063.0_x64__2p2nqsd0c76g0`. The runtime discovers the registered official Store package dynamically; this exact version is not hard-coded as a launch target.
 
 ## Installation
 
@@ -129,7 +129,7 @@ Give the sentence at the top of this README to an AI coding agent that can acces
 3. Verify the archive:
 
    ```powershell
-   Get-FileHash -Algorithm SHA256 .\Codex-Dream-Skin-Switcher-v0.1.0-win-x64.zip
+   Get-FileHash -Algorithm SHA256 .\Codex-Dream-Skin-Switcher-v0.1.1-win-x64.zip
    Get-Content .\SHA256SUMS.txt
    ```
 
@@ -179,7 +179,7 @@ On the test machine, activating a healthy session takes about 1.2 seconds. Rebui
 
 ### Hot-switching a theme
 
-1. Open “Codex 主题切换器” or run `CodexThemeSwitcher.exe` without arguments.
+1. Open “Codex 主题切换器” or run `Codex自定义主题.exe` without arguments.
 2. Select a theme in the left catalog.
 3. Compare Home and Task previews.
 4. Click Apply, or double-click the theme.
@@ -242,7 +242,7 @@ See [`docs/THEME-FORMAT.md`](docs/THEME-FORMAT.md). Keep IDs stable, use relativ
 
 ```mermaid
 flowchart LR
-    A["CodexThemeSwitcher.exe"] -->|"reads"| B["themes/*/theme.json"]
+    A["Codex自定义主题.exe"] -->|"reads"| B["themes/*/theme.json"]
     A -->|"apply"| C["switch-theme.ps1"]
     C -->|"validate + copy"| D["%LOCALAPPDATA%/CodexDreamSkin/active-theme"]
     C -->|"one-shot injection"| E["127.0.0.1 CDP"]
@@ -335,8 +335,8 @@ git clone git@github.com:bilbillm/Codex-Dream-Skin-Switcher.git
 cd Codex-Dream-Skin-Switcher
 dotnet build .\src\CodexThemeSwitcher\CodexThemeSwitcher.csproj -c Release
 
-.\scripts\build-release.ps1 -Version 0.1.0
-.\scripts\verify-release.ps1 -Version 0.1.0
+.\scripts\build-release.ps1 -Version 0.1.1
+.\scripts\verify-release.ps1 -Version 0.1.1
 ```
 
 The default release is self-contained. Use `-FrameworkDependent` for a smaller build that requires .NET Desktop Runtime 10.
@@ -346,7 +346,7 @@ Future publishers may pass `-RuntimeFrameworkVersion` to select a different runt
 After testing and building, a maintainer with an authenticated GitHub CLI session can publish with:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version 0.1.0
+.\scripts\publish-release.ps1 -Version 0.1.1 -ReleaseTitle 'v0.1.1 - 单一主程序 / Single executable'
 ```
 
 The script pushes Git over SSH, then uses `gh` to create the public repository, set topics, and upload Release assets. It never reads or prints a plaintext token.
@@ -358,7 +358,7 @@ node --test .\engine\tests\*.test.mjs
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\engine\tests\run-tests.ps1
 ```
 
-The `v0.1.0` release gate includes a zero-warning .NET build, theme validation, GUI self-test, real light/dark hot switching, renderer markers, cold/fast launch paths, 150% DPI screenshots, ZIP inventory, SHA-256, and credential-pattern scanning.
+The `v0.1.1` release gate includes a zero-warning .NET build, theme validation, GUI self-test, real light/dark hot switching, renderer markers, cold/fast launch paths, 150% DPI screenshots, ZIP inventory, SHA-256, and credential-pattern scanning.
 
 ## Repository layout
 
@@ -399,7 +399,7 @@ The watcher retains a verified CDP connection. The switcher updates the active t
 
 ### Are the launcher and switcher separate programs?
 
-The Release uses one `CodexThemeSwitcher.exe`. No arguments opens the switcher; `--launch` opens launch mode. Shortcuts store that argument.
+The Release contains only `Codex自定义主题.exe`. No arguments opens the switcher; `--launch` opens launch mode. Both shortcuts target that one file, and the obsolete `CodexThemeSwitcher.exe` and launcher copy are no longer distributed.
 
 ### Can it live on another drive?
 

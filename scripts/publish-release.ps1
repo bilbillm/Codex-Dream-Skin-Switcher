@@ -1,7 +1,8 @@
 ﻿[CmdletBinding()]
 param(
   [string]$Repository = 'bilbillm/Codex-Dream-Skin-Switcher',
-  [string]$Version = '0.1.0'
+  [string]$Version = '0.1.1',
+  [string]$ReleaseTitle = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -45,6 +46,7 @@ $sshUrl = "git@github.com:$Repository.git"
 $zipPath = Join-Path $repoRoot "artifacts\Codex-Dream-Skin-Switcher-v$Version-win-x64.zip"
 $hashPath = Join-Path $repoRoot 'artifacts\SHA256SUMS.txt'
 $notesPath = Join-Path $repoRoot "docs\releases\v$Version.md"
+if ([string]::IsNullOrWhiteSpace($ReleaseTitle)) { $ReleaseTitle = $tag }
 
 foreach ($path in @($zipPath, $hashPath, $notesPath)) {
   if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
@@ -113,7 +115,7 @@ $releaseExists = (Invoke-Native -Quiet { gh release view $tag --repo $Repository
 if (-not $releaseExists) {
   $releaseExit = Invoke-Native { gh release create $tag `
     --repo $Repository `
-    --title "$tag - First public release / 首个公开版本" `
+    --title $ReleaseTitle `
     --notes-file $notesPath `
     --verify-tag }
   if ($releaseExit -ne 0) { throw "GitHub Release $tag creation failed." }

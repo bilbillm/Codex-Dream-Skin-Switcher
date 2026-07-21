@@ -1,6 +1,6 @@
 ﻿[CmdletBinding()]
 param(
-  [string]$Version = '0.1.0',
+  [string]$Version = '0.1.1',
   [string]$RuntimeFrameworkVersion = '10.0.10',
   [switch]$FrameworkDependent
 )
@@ -52,7 +52,7 @@ if (-not $FrameworkDependent) {
   -o $publishRoot
 if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed with exit code $LASTEXITCODE" }
 
-Copy-Item -LiteralPath (Join-Path $publishRoot 'CodexThemeSwitcher.exe') -Destination $stagingRoot
+Copy-Item -LiteralPath (Join-Path $publishRoot 'Codex自定义主题.exe') -Destination $stagingRoot
 Copy-Item -Recurse -LiteralPath (Join-Path $repoRoot 'engine') -Destination $stagingRoot
 Copy-Item -Recurse -LiteralPath (Join-Path $repoRoot 'themes') -Destination $stagingRoot
 Copy-Item -LiteralPath (Join-Path $repoRoot 'src\CodexThemeSwitcher\switch-theme.ps1') -Destination $stagingRoot

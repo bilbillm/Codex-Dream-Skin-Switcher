@@ -1,6 +1,6 @@
 ﻿[CmdletBinding()]
 param(
-  [string]$Version = '0.1.0'
+  [string]$Version = '0.1.1'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -22,7 +22,7 @@ $archive = [System.IO.Compression.ZipFile]::OpenRead($zipPath)
 try {
   $names = @($archive.Entries | ForEach-Object { $_.FullName.Replace('/', '\') })
   $required = @(
-    'CodexThemeSwitcher.exe',
+    'Codex自定义主题.exe',
     'switch-theme.ps1',
     '安装快捷方式.ps1',
     '卸载快捷方式.ps1',
@@ -35,6 +35,9 @@ try {
   )
   foreach ($name in $required) {
     if ($names -cnotcontains $name) { throw "Release ZIP is missing: $name" }
+  }
+  foreach ($name in @('CodexThemeSwitcher.exe', 'Codex自定义主题启动器.exe')) {
+    if ($names -ccontains $name) { throw "Release ZIP contains obsolete executable: $name" }
   }
 } finally {
   $archive.Dispose()
