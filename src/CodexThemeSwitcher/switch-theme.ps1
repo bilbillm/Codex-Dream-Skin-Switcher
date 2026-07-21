@@ -1,7 +1,8 @@
 ﻿[CmdletBinding()]
 param(
   [Parameter(Mandatory = $true)][string]$ThemeDirectory,
-  [switch]$ValidateOnly
+  [switch]$ValidateOnly,
+  [switch]$SaveOnly
 )
 
 $ErrorActionPreference = 'Stop'
@@ -42,6 +43,17 @@ $theme = $loaded.Theme | ConvertTo-Json -Depth 8 | ConvertFrom-Json
 $active = Set-DreamSkinActiveTheme -ImagePath $loaded.ImagePath -TaskImagePath $loaded.TaskImagePath `
   -Theme $theme -StateRoot $stateRoot
 $null = Set-DreamSkinPaused -Paused $false -StateRoot $stateRoot
+
+if ($SaveOnly) {
+  [pscustomobject]@{
+    pass = $true
+    savedOnly = $true
+    id = "$($active.Theme.id)"
+    name = "$($active.Theme.name)"
+    appearance = "$($active.Theme.appearance)"
+  } | ConvertTo-Json -Compress
+  exit 0
+}
 
 $paths = Get-DreamSkinThemePaths -StateRoot $stateRoot
 $state = $null

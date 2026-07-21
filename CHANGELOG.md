@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented here. Versions follow Semantic Versioning.
 
+## [0.2.0] - 2026-07-22
+
+### Changed
+
+- Replaced the separate launcher and switcher modes with one persistent desktop control console.
+- Made theme selection explicit: apply it immediately to a healthy session or save it safely for the next Codex launch.
+- Reworked shortcut installation to create one argument-free console entry and clean up the legacy switcher shortcut.
+
+### Added
+
+- Post-launch tray minimization with restore and exit actions.
+- A compact settings dialog that persists the post-launch window preference.
+- `switch-theme.ps1 -SaveOnly` and regression coverage for offline active-theme preparation.
+
 ## [0.1.1] - 2026-07-21
 
 ### Changed

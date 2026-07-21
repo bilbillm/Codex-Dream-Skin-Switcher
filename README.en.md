@@ -6,7 +6,7 @@ English | [简体中文](README.md)
 
 # Codex Dream Skin Switcher
 
-A Windows GUI for previewing, importing, hot-switching, and one-click launching custom Codex Dream Skin themes. Version `v0.1.1` includes the Angelina Gravity Field light theme and Angelina Midnight Gravity dark theme, while preserving the verification and rollback boundaries of the Dream Skin runtime.
+A Windows GUI for previewing, importing, hot-switching, and launching custom Codex Dream Skin themes. Version `v0.2.0` unifies theme selection, application, and Codex launch in one inspectable desktop console.
 
 [![Release](https://img.shields.io/github/v/release/bilbillm/Codex-Dream-Skin-Switcher?display_name=tag)](https://github.com/bilbillm/Codex-Dream-Skin-Switcher/releases/latest)
 [![License: MIT](https://img.shields.io/badge/code%20license-MIT-green.svg)](LICENSE)
@@ -16,15 +16,9 @@ A Windows GUI for previewing, importing, hot-switching, and one-click launching 
 > [!IMPORTANT]
 > This is not an official Codex theme and cannot appear in the official theme settings. It injects CSS and a small amount of decorative DOM through a Chromium DevTools Protocol endpoint bound to the local loopback interface. It does not modify `WindowsApps`, `app.asar`, the official package signature, accounts, conversations, projects, or API configuration.
 
-## Screenshots
+## Console overview
 
-### Theme switcher
-
-![Theme switcher](docs/images/theme-switcher.png)
-
-### One-click launcher
-
-![One-click launcher](docs/images/theme-launcher.png)
+The `v0.2.0` unified console keeps theme preview, theme cards, Apply, and Launch Codex in one window, with optional post-launch tray minimization.
 
 ### Frosted pinned-summary card
 
@@ -56,11 +50,11 @@ This project adds a GUI layer without weakening Dream Skin's process and path ch
 |---|---|
 | Theme catalog | Scans the adjacent `themes` directory; each child directory is one theme |
 | Image preview | Switches between home and task images without locking their source files |
-| Hot switch | Validates a theme, writes `%LOCALAPPDATA%\CodexDreamSkin\active-theme`, and applies it through the verified CDP session |
-| One-click launch | Activates a healthy session immediately or starts Codex, CDP, and the watcher when needed |
+| Apply theme | Hot-switches a connected session or safely saves the selection for the next launch |
+| Launch Codex | Saves the selected theme first, then activates a healthy session or starts Codex, CDP, and the watcher |
 | Theme import | Copies a valid folder and rejects absolute image paths, traversal, reparse points, and dangerous names |
 | Runtime status | Reports watcher connection, selected theme, progress, and errors |
-| Shortcuts | Installs desktop launch, Start Menu launch, and Start Menu switcher entries |
+| Shortcuts | Installs one argument-free desktop and Start Menu console entry |
 | Recovery | Leaves the official package untouched; ending the debug session or running restore returns the official appearance |
 
 ## Bundled themes
@@ -92,7 +86,7 @@ Both themes include continuous wallpaper, frosted-glass side/right/bottom panels
 - Node.js 22 or newer; `24.7.0` is the validated version.
 - Windows PowerShell 5.1, included with Windows.
 - The release GUI is self-contained and does not require a separately installed .NET Desktop Runtime.
-- The `v0.1.1` self-contained package pins Windows Desktop Runtime `10.0.10`.
+- The `v0.2.0` self-contained package pins Windows Desktop Runtime `10.0.10`.
 
 ### Building from source
 
@@ -102,7 +96,7 @@ Both themes include continuous wallpaper, frosted-glass side/right/bottom panels
 - PowerShell 7 may be used for development commands, but the GUI deliberately launches Dream Skin startup scripts through Windows PowerShell 5.1. PowerShell 7 automatically converts ISO JSON timestamps into `DateTime`, whose localized string form breaks the runtime's strict process-start identity comparison.
 
 > [!NOTE]
-> Version `v0.1.1` was verified against `OpenAI.Codex_26.715.7063.0_x64__2p2nqsd0c76g0`. The runtime discovers the registered official Store package dynamically; this exact version is not hard-coded as a launch target.
+> Version `v0.2.0` was verified against `OpenAI.Codex_26.715.7063.0_x64__2p2nqsd0c76g0`. The runtime discovers the registered official Store package dynamically; this exact version is not hard-coded as a launch target.
 
 ## Installation
 
@@ -129,7 +123,7 @@ Give the sentence at the top of this README to an AI coding agent that can acces
 3. Verify the archive:
 
    ```powershell
-   Get-FileHash -Algorithm SHA256 .\Codex-Dream-Skin-Switcher-v0.1.1-win-x64.zip
+   Get-FileHash -Algorithm SHA256 .\Codex-Dream-Skin-Switcher-v0.2.0-win-x64.zip
    Get-Content .\SHA256SUMS.txt
    ```
 
@@ -146,11 +140,10 @@ Give the sentence at the top of this README to an AI coding agent that can acces
 
 | Location | Name | Arguments | Purpose |
 |---|---|---|---|
-| Desktop | `Codex 自定义主题` | `--launch` | Start or activate themed Codex |
-| Start Menu | `Codex 自定义主题` | `--launch` | Same launch entry |
-| Start Menu | `Codex 主题切换器` | none | Open preview/import/hot-switch UI |
+| Desktop | `Codex 自定义主题` | none | Open the unified console |
+| Start Menu | `Codex 自定义主题` | none | Same console entry |
 
-The installer does not move files, request administrator privileges, modify WindowsApps, touch credentials, pin to the taskbar, or delete existing Dream Skin shortcuts.
+The installer does not move files, request administrator privileges, modify WindowsApps, touch credentials, or pin to the taskbar. It removes this project's legacy `Codex 主题切换器` Start Menu entry.
 
 Optional switches:
 
@@ -161,31 +154,14 @@ Optional switches:
 
 ## Daily use
 
-### One-click launch
+### Select, apply, and launch
 
-Open “Codex 自定义主题”. The launcher:
+1. Open “Codex 自定义主题”, choose a theme card, and compare Home and Task previews.
+2. Click Apply: connected Codex sessions hot-switch immediately; disconnected sessions save the choice for the next launch.
+3. Click Launch Codex: the console safely saves the selected theme, then verifies a healthy session or starts Codex, CDP, and the watcher.
+4. After success, the console minimizes to the system tray by default. Double-click the tray icon to restore it, or change the behavior in Settings.
 
-1. Reads the active theme name.
-2. Checks the watcher PID, port, and Browser ID from state.
-3. Queries only the `127.0.0.1` CDP `json/version` endpoint and verifies browser identity.
-4. Activates the Codex window immediately when the session is healthy.
-5. Otherwise runs `engine/scripts/start-dream-skin.ps1`:
-   - If Codex is closed, it starts Codex with loopback CDP arguments.
-   - If Codex already has a verified Dream Skin session, it starts the watcher.
-   - If Codex is running normally without CDP, it asks before restarting to protect unsent input.
-6. Closes itself after watcher verification succeeds.
-
-On the test machine, activating a healthy session takes about 1.2 seconds. Rebuilding a stopped watcher takes about 18 seconds.
-
-### Hot-switching a theme
-
-1. Open “Codex 主题切换器” or run `Codex自定义主题.exe` without arguments.
-2. Select a theme in the left catalog.
-3. Compare Home and Task previews.
-4. Click Apply, or double-click the theme.
-5. The switcher validates JSON/assets, updates the active theme, and performs a one-shot injection.
-
-Codex does not restart during a hot switch. If the service is disconnected, click Start service or launch Codex through the themed entry first.
+When an ordinary Codex session needs CDP for the first time, the runtime asks before restarting to protect unsent input. A healthy-session activation takes about 1.2 seconds; rebuilding a stopped watcher takes about 18 seconds.
 
 ### Importing a theme
 
@@ -245,9 +221,9 @@ flowchart LR
     A["Codex自定义主题.exe"] -->|"reads"| B["themes/*/theme.json"]
     A -->|"apply"| C["switch-theme.ps1"]
     C -->|"validate + copy"| D["%LOCALAPPDATA%/CodexDreamSkin/active-theme"]
-    C -->|"one-shot injection"| E["127.0.0.1 CDP"]
-    F["--launch mode"] -->|"healthy fast path"| E
-    F -->|"start when missing"| G["start-dream-skin.ps1"]
+    C -->|"-SaveOnly"| D
+    A -->|"Launch Codex"| G["start-dream-skin.ps1"]
+    A -->|"live apply when connected"| E["127.0.0.1 CDP"]
     G --> H["Codex + watcher"]
     H --> E
     E --> I["Codex renderer: CSS + decorative DOM"]
@@ -255,8 +231,8 @@ flowchart LR
 
 | Module | Responsibility |
 |---|---|
-| `src/CodexThemeSwitcher` | GUI, catalog, preview, import, launch mode, and process calls |
-| `switch-theme.ps1` | Theme path boundary, validation, active theme write, and one-shot hot apply |
+| `src/CodexThemeSwitcher` | Unified console, catalog, preview, import, launch, tray, and process calls |
+| `switch-theme.ps1` | Theme path boundary, validation, offline active-theme write, and one-shot hot apply |
 | `engine/scripts/common-windows.ps1` | Official Store package discovery, process identity, ports, and atomic files |
 | `engine/scripts/theme-windows.ps1` | Theme store, switching, pause state, and operation UI |
 | `engine/scripts/injector.mjs` | CDP sessions, target discovery, injection, watch, and verification |
@@ -287,11 +263,11 @@ Imported themes are treated as data. The GUI reads JSON and images but does not 
 
 ## Updating
 
-1. Close the switcher.
+1. Exit the console (choose “退出控制台” from its tray menu when minimized).
 2. Download and verify the new Release.
 3. Extract into a new directory or replace static files.
 4. Run `安装快捷方式.ps1` again.
-5. Launch through the themed entry and verify watcher status.
+5. Open the console, select a theme, and verify watcher status.
 
 Replacing program files does not automatically delete active or saved themes under `%LOCALAPPDATA%\CodexDreamSkin`.
 
@@ -317,9 +293,9 @@ Review the restore script before adding `-Uninstall`. Recovery does not delete c
 
 | Symptom | Likely cause | Action |
 |---|---|---|
-| Service disconnected | Codex was not started as a Dream Skin session, or watcher exited | Use the themed launch entry; approve restart only after saving input |
-| No session during Apply | CDP unavailable or Browser ID changed | Close Codex and launch through the themed entry |
-| Launcher remains busy | Store update, slow startup, or verification timeout | Allow up to 45 seconds; inspect `injector-error.log` and `verify.log` |
+| Waiting to launch Codex | Codex is not connected through Dream Skin, or watcher exited | Select a theme and click Launch Codex in the console |
+| Apply does not update immediately | CDP unavailable or Browser ID changed | The theme is saved for next launch; click Launch Codex to reconnect |
+| Console remains busy | Store update, slow startup, or verification timeout | Allow up to 45 seconds; inspect `injector-error.log` and `verify.log` |
 | First launch asks to restart | Existing Codex lacks CDP | Save unsent text, then approve; cancel is non-destructive |
 | Theme absent | Missing/invalid JSON or image | Validate against the format and use relative paths |
 | Preview fails | Unsupported WinForms image encoding | Convert to standard RGB PNG/JPEG |
@@ -335,8 +311,8 @@ git clone git@github.com:bilbillm/Codex-Dream-Skin-Switcher.git
 cd Codex-Dream-Skin-Switcher
 dotnet build .\src\CodexThemeSwitcher\CodexThemeSwitcher.csproj -c Release
 
-.\scripts\build-release.ps1 -Version 0.1.1
-.\scripts\verify-release.ps1 -Version 0.1.1
+.\scripts\build-release.ps1 -Version 0.2.0
+.\scripts\verify-release.ps1 -Version 0.2.0
 ```
 
 The default release is self-contained. Use `-FrameworkDependent` for a smaller build that requires .NET Desktop Runtime 10.
@@ -346,7 +322,7 @@ Future publishers may pass `-RuntimeFrameworkVersion` to select a different runt
 After testing and building, a maintainer with an authenticated GitHub CLI session can publish with:
 
 ```powershell
-.\scripts\publish-release.ps1 -Version 0.1.1 -ReleaseTitle 'v0.1.1 - 单一主程序 / Single executable'
+.\scripts\publish-release.ps1 -Version 0.2.0 -ReleaseTitle 'v0.2.0 - 统一启动控制台 / Unified launch console'
 ```
 
 The script pushes Git over SSH, then uses `gh` to create the public repository, set topics, and upload Release assets. It never reads or prints a plaintext token.
@@ -358,7 +334,7 @@ node --test .\engine\tests\*.test.mjs
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\engine\tests\run-tests.ps1
 ```
 
-The `v0.1.1` release gate includes a zero-warning .NET build, theme validation, GUI self-test, real light/dark hot switching, renderer markers, cold/fast launch paths, 150% DPI screenshots, ZIP inventory, SHA-256, and credential-pattern scanning.
+The `v0.2.0` release gate includes a zero-warning .NET build, offline theme saving, GUI self-test, real light/dark hot switching, renderer markers, cold/fast launch paths, tray restore, 150% DPI console screenshots, ZIP inventory, SHA-256, and credential-pattern scanning.
 
 ## Repository layout
 
@@ -395,11 +371,11 @@ Changing `app.asar` or WindowsApps breaks signature, update, and recovery expect
 
 ### Why can a theme switch without restarting?
 
-The watcher retains a verified CDP connection. The switcher updates the active theme and performs a one-shot injection that replaces CSS variables, image URLs, and theme classes.
+The watcher retains a verified CDP connection. The console updates the active theme and performs a one-shot injection that replaces CSS variables, image URLs, and theme classes.
 
-### Are the launcher and switcher separate programs?
+### Are launch and theme switching in the same interface?
 
-The Release contains only `Codex自定义主题.exe`. No arguments opens the switcher; `--launch` opens launch mode. Both shortcuts target that one file, and the obsolete `CodexThemeSwitcher.exe` and launcher copy are no longer distributed.
+Yes. The Release contains only `Codex自定义主题.exe`, which always opens the unified console. Selecting a theme alone does not change Codex; use Apply or Launch Codex to make it effective. The historical `--launch` argument is retained only for old-shortcut compatibility and opens the same console.
 
 ### Can it live on another drive?
 
@@ -415,7 +391,7 @@ Dream Skin compares ISO timestamp strings as part of process identity. PowerShel
 
 ## Contributing
 
-Contributions are welcome for original themes with clear redistribution rights, new Codex selector compatibility, reproducible launcher/hot-switch/DPI fixes, bilingual docs, and security tests. Read [`CONTRIBUTING.md`](CONTRIBUTING.md).
+Contributions are welcome for original themes with clear redistribution rights, new Codex selector compatibility, reproducible console/hot-switch/DPI fixes, bilingual docs, and security tests. Read [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Upstream and credits
 

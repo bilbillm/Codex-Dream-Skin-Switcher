@@ -20,7 +20,7 @@ Before sharing output, remove Browser ID, user-specific paths, account details, 
 1. Confirm Codex is running.
 2. Confirm the PID in `state.json` exists.
 3. Query `http://127.0.0.1:9335/json/version` locally.
-4. If the endpoint is absent, close Codex and use the themed launcher.
+4. If the endpoint is absent, open the control console, select a theme, and click “启动 Codex”.
 5. If prompted to restart, save unsent input first.
 
 Do not change the port until you know what owns 9335. Dream Skin refuses unverified listeners intentionally.
@@ -43,11 +43,11 @@ Common failures:
 - absolute or escaping image path;
 - missing image file;
 - theme outside the bundle's `themes` root;
-- no verified CDP session.
+- no verified CDP session (use `-SaveOnly` to validate and save a theme for the next launch without CDP).
 
-## Launcher does not close
+## Console remains busy
 
-The launcher allows up to 45 seconds for Codex/CDP readiness. A first migration from an older watcher can take longer because the runtime verifies and stops the old Node process before creating a new one.
+The console allows up to 45 seconds for Codex/CDP readiness. A first migration from an older watcher can take longer because the runtime verifies and stops the old Node process before creating a new one.
 
 Check for an error dialog behind other windows. Then inspect:
 

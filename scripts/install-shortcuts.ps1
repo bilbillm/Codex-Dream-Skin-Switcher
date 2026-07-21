@@ -52,21 +52,21 @@ $created = [System.Collections.Generic.List[string]]::new()
 
 if (-not $SkipDesktop) {
   $desktopShortcut = Join-Path ([Environment]::GetFolderPath('Desktop')) 'Codex 自定义主题.lnk'
-  New-Shortcut -Shell $shell -Path $desktopShortcut -Target $executable -Arguments '--launch' `
-    -WorkingDirectory $bundleRoot -Description '使用当前自定义主题启动 Codex'
+  New-Shortcut -Shell $shell -Path $desktopShortcut -Target $executable -Arguments '' `
+    -WorkingDirectory $bundleRoot -Description '打开 Codex 自定义主题控制台'
   $created.Add($desktopShortcut)
 }
 
 if (-not $SkipStartMenu) {
   $programs = [Environment]::GetFolderPath('Programs')
-  $launcherShortcut = Join-Path $programs 'Codex 自定义主题.lnk'
-  $switcherShortcut = Join-Path $programs 'Codex 主题切换器.lnk'
-  New-Shortcut -Shell $shell -Path $launcherShortcut -Target $executable -Arguments '--launch' `
-    -WorkingDirectory $bundleRoot -Description '使用当前自定义主题启动 Codex'
-  New-Shortcut -Shell $shell -Path $switcherShortcut -Target $executable -Arguments '' `
-    -WorkingDirectory $bundleRoot -Description '预览、导入并热切换 Codex 自定义主题'
-  $created.Add($launcherShortcut)
-  $created.Add($switcherShortcut)
+  $consoleShortcut = Join-Path $programs 'Codex 自定义主题.lnk'
+  $legacySwitcherShortcut = Join-Path $programs 'Codex 主题切换器.lnk'
+  if (Test-Path -LiteralPath $legacySwitcherShortcut -PathType Leaf) {
+    Remove-Item -LiteralPath $legacySwitcherShortcut -Force
+  }
+  New-Shortcut -Shell $shell -Path $consoleShortcut -Target $executable -Arguments '' `
+    -WorkingDirectory $bundleRoot -Description '打开 Codex 自定义主题控制台'
+  $created.Add($consoleShortcut)
 }
 
 $selfTest = Start-Process -FilePath $executable -ArgumentList '--self-test' -Wait -PassThru

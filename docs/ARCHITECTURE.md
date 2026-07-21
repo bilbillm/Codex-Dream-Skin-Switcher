@@ -10,14 +10,14 @@ The project is an external appearance layer for the official Windows Codex packa
 
 ### WinForms shell
 
-- `Program.cs` selects switcher, launcher, or self-test mode.
-- `MainForm.cs` owns the catalog, previews, import, service action, and apply action.
-- `LauncherForm.cs` owns healthy-session detection, cold startup, activation, retry, and progress UI.
+- `Program.cs` opens the unified console and retains self-test mode.
+- `DashboardForm.cs` owns theme selection, previews, offline saving, hot switching, cold startup, activation, progress UI, and console tray behavior.
+- `DashboardSettings.cs` persists the post-launch window preference under the managed local state root.
 - `ThemeCatalog.cs` parses theme data and enforces image path containment.
 
 ### PowerShell bridge
 
-`switch-theme.ps1` is the only GUI-to-runtime apply bridge. It restricts themes to the adjacent `themes` directory, delegates schema and asset validation to Dream Skin, updates the active store, dynamically verifies the current Browser ID, and performs a one-shot injection.
+`switch-theme.ps1` is the only GUI-to-runtime apply bridge. It restricts themes to the adjacent `themes` directory, delegates schema and asset validation to Dream Skin, updates the active store, and either returns after the safe `-SaveOnly` preparation path or dynamically verifies the current Browser ID before a one-shot injection.
 
 ### Dream Skin engine
 
@@ -53,7 +53,7 @@ sequenceDiagram
 
 ## Launch sequence
 
-The launcher first verifies the saved watcher PID and the Browser ID returned by `http://127.0.0.1:<port>/json/version`. A healthy session uses the fast path and only activates the existing Codex window.
+The console first saves the selected theme, then verifies the saved watcher PID and the Browser ID returned by `http://127.0.0.1:<port>/json/version`. A healthy session uses the fast path, hot-switches the selected theme, and activates the existing Codex window.
 
 When unhealthy, it invokes `start-dream-skin.ps1` through Windows PowerShell 5.1. The runtime either connects to an existing verified CDP session or asks before restarting a normal Codex process. After the watcher and renderer verification pass, state is written atomically.
 

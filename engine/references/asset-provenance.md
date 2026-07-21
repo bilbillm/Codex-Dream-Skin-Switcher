@@ -12,6 +12,14 @@
 
 The theme is an unofficial personal fan customization. It is not affiliated with OpenAI, Hypergryph, or Arknights. Confirm applicable character and artwork rights before public redistribution or commercial use.
 
+## `src/CodexThemeSwitcher/assets/app-icon.ico`
+
+- Purpose: application, window, tray, and shortcut icon for the Codex custom-theme control console.
+- Generation path: Image-Studio Responses API shape, text model `gpt-5.6-sol`, image model `gpt-image-2`, text-to-image mode.
+- Requested size: 1024 x 1024, explicit in the image tool payload.
+- Design: a no-text messenger-red, charcoal, and pearl-white abstract layered theme-field mark; it is not based on a third-party logo or character.
+- Processing: generated on a flat chroma-key background, locally converted to transparent RGBA PNG, then packaged as a multi-resolution ICO containing 16, 20, 24, 32, 40, 48, 64, 128, and 256px images.
+
 ## `assets/angelina-thread-bg.jpg`
 
 - Derived locally from the final hero image.

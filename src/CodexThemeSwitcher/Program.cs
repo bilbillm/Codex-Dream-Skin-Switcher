@@ -23,7 +23,6 @@ internal static class Program
         }
 
         ApplicationConfiguration.Initialize();
-        var launchMode = args.Any(arg => string.Equals(arg, "--launch", StringComparison.OrdinalIgnoreCase));
-        Application.Run(launchMode ? new LauncherForm(appRoot) : new MainForm(appRoot));
+        Application.Run(new DashboardForm(appRoot));
     }
 }
