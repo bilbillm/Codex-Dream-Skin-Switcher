@@ -97,7 +97,7 @@ if ($pushMainExit -ne 0) { throw 'SSH push of main failed.' }
 $pushTagExit = Invoke-Native { git -C $repoRoot push $sshUrl "refs/tags/$tag" }
 if ($pushTagExit -ne 0) { throw "SSH push of $tag failed." }
 
-$metadataExit = Invoke-Native { gh repo edit $Repository --enable-issues --disable-wiki `
+$metadataExit = Invoke-Native { gh repo edit $Repository --enable-issues --enable-wiki=false `
   --visibility public `
   --accept-visibility-change-consequences `
   --add-topic codex `
