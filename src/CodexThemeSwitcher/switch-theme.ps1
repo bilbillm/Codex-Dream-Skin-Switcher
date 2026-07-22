@@ -41,6 +41,7 @@ if ($ValidateOnly) {
 $stateRoot = Join-Path $env:LOCALAPPDATA 'CodexDreamSkin'
 $theme = $loaded.Theme | ConvertTo-Json -Depth 8 | ConvertFrom-Json
 $active = Set-DreamSkinActiveTheme -ImagePath $loaded.ImagePath -TaskImagePath $loaded.TaskImagePath `
+  -BackgroundImagePath $loaded.BackgroundImagePath -ForegroundImagePath $loaded.ForegroundImagePath `
   -Theme $theme -StateRoot $stateRoot
 $null = Set-DreamSkinPaused -Paused $false -StateRoot $stateRoot
 

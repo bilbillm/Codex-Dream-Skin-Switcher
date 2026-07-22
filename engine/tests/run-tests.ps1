@@ -634,57 +634,23 @@ try {
   }
 
   $themeStateRoot = Join-Path $temporaryRoot 'theme-state'
-  $legacyPresetDirectory = Join-Path $themeStateRoot 'themes\preset-romantic-rose'
   $customThemeDirectory = Join-Path $themeStateRoot 'themes\custom-keepme'
-  New-Item -ItemType Directory -Force -Path $legacyPresetDirectory, $customThemeDirectory | Out-Null
-  [System.IO.File]::WriteAllText((Join-Path $legacyPresetDirectory 'retired-marker'), 'retired', $utf8NoBom)
+  New-Item -ItemType Directory -Force -Path $customThemeDirectory | Out-Null
   [System.IO.File]::WriteAllText((Join-Path $customThemeDirectory 'keep-marker'), 'keep', $utf8NoBom)
+  $fixtureImage = Join-Path $temporaryRoot 'fixture.png'
+  $pngHeader = New-Object byte[] 24
+  [byte[]](0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a) | ForEach-Object -Begin { $i = 0 } -Process { $pngHeader[$i++] = $_ }
+  $pngHeader[8] = 0; $pngHeader[9] = 0; $pngHeader[10] = 0; $pngHeader[11] = 13
+  [byte[]](0x49, 0x48, 0x44, 0x52) | ForEach-Object -Begin { $i = 12 } -Process { $pngHeader[$i++] = $_ }
+  $pngHeader[19] = 1; $pngHeader[23] = 1
+  [System.IO.File]::WriteAllBytes($fixtureImage, $pngHeader)
   $themePaths = Initialize-DreamSkinThemeStore -SkillRoot $Root -StateRoot $themeStateRoot
-  if ((Test-Path -LiteralPath $legacyPresetDirectory) -or
-    -not (Test-Path -LiteralPath (Join-Path $customThemeDirectory 'keep-marker'))) {
-    throw 'Theme-store migration did not retire the old preset ID while preserving custom themes.'
+  if ((Test-Path -LiteralPath (Join-Path $themePaths.Active 'theme.json')) -or
+    -not (Test-Path -LiteralPath (Join-Path $customThemeDirectory 'keep-marker')) -or
+    @(Get-DreamSkinSavedThemes -StateRoot $themeStateRoot).Count -ne 0) {
+    throw 'Theme-store initialization seeded a bundled theme or altered an existing custom theme.'
   }
-  $initialTheme = Read-DreamSkinTheme -ThemeDirectory $themePaths.Active
-  if ($initialTheme.Theme.id -cne 'preset-angelina-gravity-field' -or
-    $initialTheme.Theme.name -cne 'Angelina Gravity Field' -or
-    $initialTheme.Theme.variant -cne 'angelina' -or
-    $initialTheme.Theme.appearance -cne 'light' -or
-    $initialTheme.Theme.art.safeArea -cne 'left' -or
-    $initialTheme.Theme.art.taskMode -cne 'ambient' -or
-    [System.IO.Path]::GetExtension($initialTheme.ImagePath) -cne '.png' -or
-    [System.IO.Path]::GetExtension($initialTheme.TaskImagePath) -cne '.jpg') {
-    throw 'Default Windows theme did not seed the Angelina dual-background contract.'
-  }
-  $preseededThemes = @(Get-DreamSkinSavedThemes -StateRoot $themeStateRoot)
-  $preseededIds = @($preseededThemes | ForEach-Object { $_.Id })
-  if ($preseededThemes.Count -lt 4 -or
-    $preseededIds -notcontains 'preset-angelina-gravity-field' -or
-    $preseededIds -notcontains 'preset-angelina-midnight-gravity' -or
-    $preseededIds -notcontains 'preset-arina-hashimoto' -or
-    $preseededIds -notcontains 'preset-gothic-void-crusade') {
-    throw 'Windows did not preseed both Angelina variants, Arina Hashimoto, and Gothic Void Crusade.'
-  }
-  $angelinaSeed = $preseededThemes | Where-Object { $_.Id -ceq 'preset-angelina-gravity-field' } | Select-Object -First 1
-  $null = Use-DreamSkinSavedTheme -ThemeDirectory $angelinaSeed.Path -StateRoot $themeStateRoot
-  $reloadedAngelina = Read-DreamSkinTheme -ThemeDirectory $themePaths.Active
-  if (-not $reloadedAngelina.TaskImagePath -or $reloadedAngelina.Theme.variant -cne 'angelina') {
-    throw 'Saved-theme switching did not preserve the Angelina task background.'
-  }
-  $midnightSeed = $preseededThemes | Where-Object { $_.Id -ceq 'preset-angelina-midnight-gravity' } | Select-Object -First 1
-  $null = Use-DreamSkinSavedTheme -ThemeDirectory $midnightSeed.Path -StateRoot $themeStateRoot
-  $reloadedMidnight = Read-DreamSkinTheme -ThemeDirectory $themePaths.Active
-  if ($reloadedMidnight.Theme.name -cne 'Angelina Midnight Gravity' -or
-    $reloadedMidnight.Theme.appearance -cne 'dark' -or
-    $reloadedMidnight.Theme.variant -cne 'angelina' -or
-    -not $reloadedMidnight.TaskImagePath -or
-    [System.IO.Path]::GetExtension($reloadedMidnight.ImagePath) -cne '.png') {
-    throw 'Saved-theme switching did not preserve the midnight Angelina dark dual-background contract.'
-  }
-  $gothicSeed = $preseededThemes | Where-Object { $_.Id -ceq 'preset-gothic-void-crusade' } | Select-Object -First 1
-  if ($null -eq $gothicSeed -or $gothicSeed.Name -cne 'Gothic Void Crusade') {
-    throw 'Gothic Void Crusade was not preseeded with the expected display name.'
-  }
-  $updatedTheme = Set-DreamSkinActiveTheme -ImagePath (Join-Path $Root 'assets\dream-reference.jpg') `
+  $updatedTheme = Set-DreamSkinActiveTheme -ImagePath $fixtureImage `
     -Theme $null -Name '测试主题' -StateRoot $themeStateRoot
   if ($updatedTheme.Theme.name -cne '测试主题' -or
     $updatedTheme.Theme.id -cne 'custom' -or
@@ -696,21 +662,20 @@ try {
   $null = Initialize-DreamSkinThemeStore -SkillRoot $Root -StateRoot $themeStateRoot
   $idempotentTheme = Read-DreamSkinTheme -ThemeDirectory $themePaths.Active
   $afterReinitCount = @(Get-DreamSkinSavedThemes -StateRoot $themeStateRoot).Count
-  if ($idempotentTheme.Theme.id -cne 'custom' -or $idempotentTheme.TaskImagePath -or $afterReinitCount -ne 4) {
-    throw 'Theme-store initialization overwrote the active custom theme or duplicated its bundled presets.'
+  if ($idempotentTheme.Theme.id -cne 'custom' -or $idempotentTheme.TaskImagePath -or $afterReinitCount -ne 0) {
+    throw 'Theme-store initialization overwrote the active custom theme or seeded a bundled preset.'
   }
   $savedTheme = Save-DreamSkinCurrentTheme -Name '已保存主题' -StateRoot $themeStateRoot
-  if ($savedTheme.Theme.name -cne '已保存主题' -or @(Get-DreamSkinSavedThemes -StateRoot $themeStateRoot).Count -ne 5) {
+  if ($savedTheme.Theme.name -cne '已保存主题' -or @(Get-DreamSkinSavedThemes -StateRoot $themeStateRoot).Count -ne 1) {
     throw 'Saved theme creation or discovery failed.'
   }
   $null = Use-DreamSkinSavedTheme -ThemeDirectory $savedTheme.Directory -StateRoot $themeStateRoot
 
   $outsideTheme = Join-Path $temporaryRoot 'outside-theme'
   New-Item -ItemType Directory -Path $outsideTheme | Out-Null
-  Copy-Item -LiteralPath (Join-Path $Root 'assets\dream-reference.jpg') `
-    -Destination (Join-Path $outsideTheme 'dream-reference.jpg')
-  Copy-Item -LiteralPath (Join-Path $Root 'assets\theme.json') `
-    -Destination (Join-Path $outsideTheme 'theme.json')
+  Copy-Item -LiteralPath $fixtureImage -Destination (Join-Path $outsideTheme 'fixture.png')
+  Write-DreamSkinUtf8FileAtomically -Path (Join-Path $outsideTheme 'theme.json') `
+    -Content "{`"image`":`"fixture.png`"}`r`n"
   $junctionTheme = Join-Path $themePaths.Saved 'junction-escape'
   $null = New-Item -ItemType Junction -Path $junctionTheme -Target $outsideTheme
   $junctionRejected = $false
@@ -936,7 +901,7 @@ try {
   & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'switch-theme-save-only.test.ps1')
   if ($LASTEXITCODE -ne 0) { throw 'Save-only theme activation regression test failed.' }
   $payloadTest = Invoke-DreamSkinNative -FilePath $node.Path -ArgumentList @(
-    (Join-Path $Root 'scripts\injector.mjs'), '--check-payload')
+    (Join-Path $Root 'scripts\injector.mjs'), '--check-payload', '--theme-dir', $themePaths.Active)
   if ($payloadTest.ExitCode -ne 0) { throw 'Injector self-test failed.' }
   $managedPayloadTest = Invoke-DreamSkinNative -FilePath $node.Path -ArgumentList @(
     (Join-Path $Root 'scripts\injector.mjs'), '--check-payload', '--theme-dir', $themePaths.Active)

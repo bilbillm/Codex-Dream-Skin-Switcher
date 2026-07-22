@@ -66,7 +66,6 @@ html.codex-dream-skin aside.app-shell-left-panel {
   background: var(--dream-sidebar) !important;
   border-color: var(--dream-line-soft) !important;
   box-shadow: inset -1px 0 var(--dream-line-soft) !important;
-  backdrop-filter: none !important;
 }
 
 html.codex-dream-skin aside.app-shell-left-panel nav {
@@ -221,7 +220,7 @@ html.codex-dream-skin .dream-home {
   min-height: 230px !important;
   flex: 0 1 auto !important;
   padding: 0 !important;
-  overflow: hidden !important;
+  overflow: visible !important;
   border: 1px solid var(--dream-line) !important;
   border-radius: 20px !important;
   background-image: var(--dream-art) !important;
@@ -241,6 +240,7 @@ html.codex-dream-skin.dream-art-wide .dream-home > div:first-child > div:first-c
   z-index: 0;
   inset: 0;
   pointer-events: none;
+  border-radius: inherit;
   background: linear-gradient(90deg, var(--dream-hero-shade) 0 32%, transparent 70%);
 }
 
@@ -413,7 +413,6 @@ html.codex-dream-skin.dream-art-wide:is(.dream-task-ambient, .dream-task-banner)
   border: 0 !important;
   border-radius: 0 !important;
   box-shadow: none !important;
-  backdrop-filter: none !important;
 }
 
 html.codex-dream-skin.dream-art-wide:is(.dream-task-ambient, .dream-task-banner):has(main.main-surface:not(.dream-home-shell))
@@ -520,7 +519,7 @@ html.codex-dream-skin .dream-home-utility {
 }
 
 html.codex-dream-skin .dream-home:has(.dream-home-utility) .composer-surface-chrome {
-  border-radius: 0 0 18px 18px !important;
+  border-radius: 12px !important;
   box-shadow: 0 10px 30px color-mix(in oklab, var(--dream-canvas) 20%, transparent),
     inset 1px 0 var(--dream-immersive-line),
     inset -1px 0 var(--dream-immersive-line),
@@ -638,6 +637,8 @@ html.codex-dream-skin.dream-art-wide main.main-surface
   html.codex-dream-skin *::after {
     scroll-behavior: auto !important;
     transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
 
@@ -666,6 +667,8 @@ html.codex-dream-skin.dream-variant-angelina {
   --agl-action: rgba(111, 31, 33, .78);
   --agl-sidebar-start: rgba(239, 240, 239, .78);
   --agl-sidebar-end: rgba(225, 228, 229, .66);
+  --agl-sidebar-motion-start: rgba(239, 240, 239, .92);
+  --agl-sidebar-motion-end: rgba(225, 228, 229, .86);
   --agl-sidebar-border: rgba(111, 31, 33, .48);
   --agl-sidebar-shadow: 10px 0 28px rgba(35, 31, 32, .16), inset -3px 0 0 rgba(158, 47, 46, .22);
   --agl-scrollbar-track: rgba(69, 65, 64, .1);
@@ -686,6 +689,11 @@ html.codex-dream-skin.dream-variant-angelina {
   --agl-menu-muted: rgba(37, 36, 38, .62);
   --agl-menu-hover: rgba(158, 47, 46, .12);
   --agl-menu-shadow: 0 14px 30px rgba(35, 31, 32, .16), inset 0 1px rgba(255, 255, 255, .2);
+  --agl-code-surface: rgba(24, 31, 38, .72);
+  --agl-code-border: rgba(255, 255, 255, .24);
+  --agl-code-text: #f5f3f0;
+  --agl-error-surface: rgba(249, 244, 241, .78);
+  --agl-error-text: #30292a;
   --agl-suggestion: rgba(251, 250, 248, .94);
   --agl-suggestion-hover: #fff;
   --agl-grid-line: rgba(75, 70, 68, .08);
@@ -726,6 +734,8 @@ html.codex-dream-skin.dream-variant-angelina.dream-theme-dark {
   --agl-action: #d66a62;
   --agl-sidebar-start: rgba(8, 14, 21, .8);
   --agl-sidebar-end: rgba(13, 21, 29, .7);
+  --agl-sidebar-motion-start: rgba(8, 14, 21, .92);
+  --agl-sidebar-motion-end: rgba(13, 21, 29, .86);
   --agl-sidebar-border: rgba(200, 91, 85, .5);
   --agl-sidebar-shadow: 12px 0 30px rgba(0, 0, 0, .34), inset -3px 0 0 rgba(200, 91, 85, .24);
   --agl-scrollbar-track: rgba(2, 7, 12, .3);
@@ -746,6 +756,11 @@ html.codex-dream-skin.dream-variant-angelina.dream-theme-dark {
   --agl-menu-muted: rgba(242, 240, 237, .62);
   --agl-menu-hover: rgba(200, 91, 85, .18);
   --agl-menu-shadow: 0 16px 34px rgba(0, 0, 0, .3), inset 0 1px rgba(255, 255, 255, .1);
+  --agl-code-surface: rgba(6, 11, 16, .8);
+  --agl-code-border: rgba(218, 228, 233, .2);
+  --agl-code-text: #f5f3f0;
+  --agl-error-surface: rgba(45, 27, 29, .8);
+  --agl-error-text: #fff4f1;
   --agl-suggestion: rgba(18, 27, 36, .86);
   --agl-suggestion-hover: rgba(28, 39, 48, .94);
   --agl-grid-line: rgba(178, 196, 204, .055);
@@ -784,7 +799,50 @@ html.codex-dream-skin.dream-variant-angelina body::after {
 
 html.codex-dream-skin.dream-variant-angelina:is(.dream-task-ambient, .dream-task-banner):has(main.main-surface:not(.dream-home-shell)) body {
   background-image: var(--dream-task-art, var(--dream-art)) !important;
-  background-position: center !important;
+  background-position: var(--dream-art-position) !important;
+}
+
+/* Keep parallax art on compositor-backed layers. Changing body background-position
+   repaints the full window, while these layers only update their transforms. */
+html.codex-dream-skin.dream-variant-angelina.dream-parallax.dream-art-wide:is(
+    .dream-task-ambient,
+    .dream-task-banner
+   ):has(main.main-surface) body {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--dream-canvas) !important;
+  background-image: none !important;
+}
+
+#codex-dream-parallax {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  overflow: hidden;
+  contain: strict;
+  pointer-events: none;
+}
+
+#codex-dream-parallax-background,
+#codex-dream-parallax-foreground {
+  position: absolute;
+  inset: -12px;
+  background-position: var(--dream-art-position);
+  background-size: calc(100% - 4px) calc(100% - 4px);
+  background-repeat: no-repeat;
+  backface-visibility: hidden;
+}
+
+#codex-dream-parallax-background {
+  background-image: var(--dream-parallax-background-art);
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+#codex-dream-parallax-foreground {
+  background-image: var(--dream-parallax-foreground-art);
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
 }
 
 html.codex-dream-skin.dream-variant-angelina aside.app-shell-left-panel {
@@ -792,7 +850,6 @@ html.codex-dream-skin.dream-variant-angelina aside.app-shell-left-panel {
   background: linear-gradient(90deg, var(--agl-sidebar-start), var(--agl-sidebar-end)) !important;
   color: var(--agl-ink) !important;
   box-shadow: 8px 0 24px rgba(35, 31, 32, .08) !important;
-  backdrop-filter: blur(18px) saturate(.9) !important;
 }
 
 html.codex-dream-skin.dream-variant-angelina.dream-art-wide:has(main.main-surface.dream-home-shell)
@@ -801,9 +858,25 @@ html.codex-dream-skin.dream-variant-angelina.dream-art-wide:is(.dream-task-ambie
   aside.app-shell-left-panel {
   z-index: 2;
   border-right: 1px solid var(--agl-sidebar-border) !important;
-  background: linear-gradient(90deg, var(--agl-sidebar-start), var(--agl-sidebar-end)) !important;
+  background: transparent !important;
   box-shadow: var(--agl-sidebar-shadow) !important;
-  backdrop-filter: blur(18px) saturate(.9) !important;
+  backdrop-filter: none;
+}
+
+/* The official right panel reveals an opaque surface by setting panel opacity
+   to the same progress as its spring width. Codex already applies that exact
+   relationship to this left-panel wrapper, so the frosted surface lives here
+   and inherits the native animation instead of running a second timeline. */
+html.codex-dream-skin.dream-variant-angelina.dream-art-wide:has(main.main-surface.dream-home-shell)
+  aside.app-shell-left-panel > div.max-w-full.overflow-hidden,
+html.codex-dream-skin.dream-variant-angelina.dream-art-wide:is(.dream-task-ambient, .dream-task-banner):has(main.main-surface:not(.dream-home-shell))
+  aside.app-shell-left-panel > div.max-w-full.overflow-hidden {
+  background: linear-gradient(
+    90deg,
+    var(--agl-sidebar-motion-start),
+    var(--agl-sidebar-motion-end)
+  ) !important;
+  backdrop-filter: blur(18px) saturate(1.04);
 }
 
 html.codex-dream-skin.dream-variant-angelina aside.app-shell-left-panel
@@ -848,17 +921,6 @@ html.codex-dream-skin.dream-variant-angelina aside.app-shell-left-panel
   display: none;
   width: 0;
   height: 0;
-}
-
-html.codex-dream-skin.dream-variant-angelina aside.app-shell-left-panel::before {
-  content: "SR02";
-  position: absolute;
-  right: 10px;
-  top: 10px;
-  color: var(--agl-red);
-  font: 700 10px/1.2 "Cascadia Mono", "Microsoft YaHei UI", monospace;
-  letter-spacing: 0;
-  pointer-events: none;
 }
 
 html.codex-dream-skin.dream-variant-angelina aside.app-shell-left-panel button {
@@ -907,6 +969,60 @@ html.codex-dream-skin.dream-variant-angelina aside.app-shell-left-panel button:h
 html.codex-dream-skin.dream-variant-angelina aside.app-shell-left-panel [aria-current="page"] {
   background: rgba(158, 47, 46, .12) !important;
   box-shadow: inset 3px 0 0 var(--agl-red) !important;
+}
+
+/* Preserve Codex's native 16px drag gutter centered on the sidebar boundary.
+   The nearby user-message rail is a separate set of clickable controls. */
+html.codex-dream-skin.dream-variant-angelina aside.app-shell-left-panel > [role="separator"] {
+  cursor: col-resize !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina aside.app-shell-left-panel
+  > [role="separator"] .sidebar-resize-handle-line {
+  width: 2px !important;
+  height: 100% !important;
+  opacity: .42 !important;
+  border-radius: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--agl-red) 18%,
+    var(--agl-red) 82%,
+    transparent 100%
+  ) !important;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--agl-red) 28%, transparent));
+  transition: opacity 160ms ease, width 160ms ease, filter 160ms ease !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina aside.app-shell-left-panel
+  > [role="separator"]:is(:hover, :focus-visible, :active) .sidebar-resize-handle-line {
+  width: 2px !important;
+  height: 100% !important;
+  opacity: 1 !important;
+  filter: brightness(1.08) drop-shadow(0 0 4px color-mix(in srgb, var(--agl-red) 42%, transparent));
+}
+
+html.codex-dream-skin.dream-variant-angelina aside.app-shell-left-panel
+  > [role="separator"]:active .sidebar-resize-handle-line {
+  animation: agl-signal-pulse 720ms ease-out;
+}
+
+html.codex-dream-skin.dream-variant-angelina
+  button[data-thread-user-message-navigation-item-id] > span > span {
+  border-radius: 1px;
+  background: var(--agl-red) !important;
+  opacity: .5 !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina
+  button[data-thread-user-message-navigation-item-id][aria-current="true"] > span > span {
+  opacity: .92 !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina
+  button[data-thread-user-message-navigation-item-id]:is(:hover, :focus-visible) > span > span {
+  background: var(--agl-red-deep) !important;
+  opacity: 1 !important;
 }
 
 html.codex-dream-skin.dream-variant-angelina main.main-surface > header.app-header-tint {
@@ -990,6 +1106,7 @@ html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
   color: var(--agl-ink) !important;
   box-shadow: var(--agl-user-bubble-shadow) !important;
   backdrop-filter: blur(8px) saturate(1.02) !important;
+  animation: agl-home-card-enter 420ms cubic-bezier(.22, 1, .36, 1) 560ms both;
 }
 
 html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
@@ -1094,6 +1211,333 @@ html.codex-dream-skin.dream-variant-angelina
   :is([data-slot="dropdown-menu-content"], [data-slot="popover-content"], [data-slot="select-content"])
   [role="separator"] {
   background: var(--agl-menu-border) !important;
+}
+
+/* The global search palette is a cmdk dialog, not a Radix popper. Its dialog
+   shell is transparent; cmdk-root owns the original opaque surface. */
+html.codex-dream-skin.dream-variant-angelina .global-command-menu-dialog > [cmdk-root] {
+  --color-token-foreground: var(--agl-menu-text);
+  --color-token-text-primary: var(--agl-menu-text);
+  --color-token-text-secondary: var(--agl-menu-muted);
+  --color-token-text-tertiary: var(--agl-menu-muted);
+  --color-token-description-foreground: var(--agl-menu-muted);
+  overflow: hidden;
+  border: 1px solid var(--agl-menu-border) !important;
+  border-radius: 8px !important;
+  background: var(--agl-menu-surface) !important;
+  color: var(--agl-menu-text) !important;
+  box-shadow: var(--agl-menu-shadow) !important;
+  backdrop-filter: blur(18px) saturate(1.04) !important;
+  animation: agl-glass-fade 180ms ease-out both;
+}
+
+html.codex-dream-skin.dream-variant-angelina .global-command-menu-dialog [cmdk-input] {
+  border-bottom: 1px solid var(--agl-menu-border) !important;
+  background: transparent !important;
+  color: var(--agl-menu-text) !important;
+  caret-color: var(--agl-red) !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina .global-command-menu-dialog [cmdk-input]::placeholder,
+html.codex-dream-skin.dream-variant-angelina .global-command-menu-dialog [cmdk-group-heading] {
+  color: var(--agl-menu-muted) !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina .global-command-menu-dialog [cmdk-list] {
+  background: transparent !important;
+  scrollbar-color: var(--agl-action) transparent;
+}
+
+html.codex-dream-skin.dream-variant-angelina .global-command-menu-dialog [cmdk-item] {
+  border-radius: 4px !important;
+  color: var(--agl-menu-text) !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina .global-command-menu-dialog
+  [cmdk-item]:is(:hover, [data-selected="true"], [aria-selected="true"]) {
+  background: var(--agl-menu-hover) !important;
+  color: var(--agl-menu-text) !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina .global-command-menu-dialog
+  [cmdk-item] :is(svg, kbd, [class*="text-token"]) {
+  color: inherit !important;
+}
+
+/* Markdown code blocks keep syntax highlighting while the block chrome and
+   unclassified source text move onto a dark, readable glass surface. */
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container pre {
+  border: 1px solid var(--agl-code-border) !important;
+  border-radius: 8px !important;
+  background: var(--agl-code-surface) !important;
+  color: var(--agl-code-text) !important;
+  box-shadow: var(--agl-menu-shadow) !important;
+  backdrop-filter: blur(18px) saturate(1.04) !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  :is(
+    [data-markdown-copy="code-block"],
+    [class*="_codeBlock_"]:has(pre),
+    [class*="_codeBlockContainer_"]:has(pre),
+    [data-code-block]:has(pre)
+  ) {
+  overflow: hidden;
+  border: 1px solid var(--agl-code-border) !important;
+  border-radius: 8px !important;
+  background: var(--agl-code-surface) !important;
+  color: var(--agl-code-text) !important;
+  box-shadow: var(--agl-menu-shadow) !important;
+  backdrop-filter: blur(18px) saturate(1.04) !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  [data-markdown-copy="code-block"] > [data-markdown-copy="exclude"],
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  :is([class*="_codeBlock_"], [class*="_codeBlockContainer_"], [data-code-block]):has(pre)
+  > :first-child:not(pre) {
+  border-bottom: 1px solid var(--agl-code-border) !important;
+  background: rgba(255, 255, 255, .06) !important;
+  color: var(--agl-code-text) !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  [data-markdown-copy="code-block"] > [data-markdown-copy="exclude"]
+  :is(button, svg) {
+  color: inherit !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  [data-markdown-copy="code-block"] > div[dir="ltr"],
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  [data-markdown-copy="code-block"] > div[dir="ltr"] > code,
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  :is([class*="_codeBlock_"], [class*="_codeBlockContainer_"], [data-code-block]):has(pre) pre {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--agl-code-text) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Permission and confirmation dialogs are renderer-owned surfaces. Keep their
+   semantics and controls, but replace the opaque shell with panel glass. */
+html.codex-dream-skin.dream-variant-angelina
+  :is([role="dialog"], [role="alertdialog"]):not(.global-command-menu-dialog) {
+  --color-token-foreground: var(--agl-panel-text);
+  --color-token-text-primary: var(--agl-panel-text);
+  --color-token-text-secondary: var(--agl-panel-muted);
+  --color-token-text-tertiary: var(--agl-panel-muted);
+  --color-token-description-foreground: var(--agl-panel-muted);
+  border: 1px solid var(--agl-panel-border) !important;
+  border-radius: 14px !important;
+  background: var(--agl-panel-surface) !important;
+  color: var(--agl-panel-text) !important;
+  box-shadow: var(--agl-panel-shadow) !important;
+  backdrop-filter: blur(18px) saturate(1.04) !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina
+  :is([role="dialog"], [role="alertdialog"]):not(.global-command-menu-dialog)
+  :is([class~="bg-token-main-surface-secondary"], [class~="bg-token-bg-secondary"]) {
+  background: rgba(255, 255, 255, .06) !important;
+}
+
+/* Inline request failures use a stable semantic aside in the thread. */
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  aside[class~="bg-token-main-surface-primary"][class~="text-sm"][class~="gap-3"] {
+  border: 1px solid color-mix(in srgb, var(--agl-red) 42%, var(--agl-menu-border)) !important;
+  border-radius: 12px !important;
+  background: var(--agl-error-surface) !important;
+  color: var(--agl-error-text) !important;
+  box-shadow: var(--agl-menu-shadow), inset 3px 0 0 var(--agl-red) !important;
+  backdrop-filter: blur(18px) saturate(1.04) !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  aside[class~="bg-token-main-surface-primary"][class~="text-sm"][class~="gap-3"]
+  > [class~="bg-token-input-background"] {
+  background: transparent !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  aside[class~="bg-token-main-surface-primary"][class~="text-sm"][class~="gap-3"]
+  :is(svg, span, [class*="text-token"]) {
+  color: inherit !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  aside[class~="bg-token-main-surface-primary"][class~="text-sm"][class~="gap-3"] svg {
+  color: var(--agl-red) !important;
+}
+
+/* Sidebar project/thread previews and compact renderer hints are tooltip
+   portals rather than Radix menus. Give both the same glass material. */
+html.codex-dream-skin.dream-variant-angelina [role="tooltip"] {
+  --color-token-foreground: var(--agl-menu-text);
+  --color-token-text-primary: var(--agl-menu-text);
+  --color-token-text-secondary: var(--agl-menu-muted);
+  --color-token-text-tertiary: var(--agl-menu-muted);
+  --color-token-description-foreground: var(--agl-menu-muted);
+  border: 1px solid var(--agl-menu-border) !important;
+  border-radius: 8px !important;
+  background: var(--agl-menu-surface) !important;
+  color: var(--agl-menu-text) !important;
+  box-shadow: var(--agl-menu-shadow) !important;
+  backdrop-filter: blur(18px) saturate(1.04) !important;
+  animation: agl-glass-fade 180ms ease-out both;
+}
+
+html.codex-dream-skin.dream-variant-angelina [role="tooltip"]
+  :is(svg, [class*="text-token"], [class*="text-size-"]) {
+  color: inherit !important;
+}
+
+/* The message-rail preview paints a second opaque, blurred surface inside the
+   tooltip portal. Keep one glass layer and suspend it during virtual-list jumps. */
+html.codex-dream-skin.dream-variant-angelina
+  [data-thread-user-message-navigation-tooltip-preview] {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina
+  [role="tooltip"][data-dream-rail-jump-active] {
+  visibility: hidden !important;
+  animation: none !important;
+  backdrop-filter: none !important;
+}
+
+/* The edited-files surface is a thread resource card, not a menu. Its inline
+   row-padding variable is the stable host anchor across localized labels. */
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  [style*="--thread-resource-card-row-padding-x"] {
+  overflow: hidden;
+  border: 1px solid var(--agl-menu-border) !important;
+  border-radius: 8px !important;
+  background: var(--agl-menu-surface) !important;
+  color: var(--agl-menu-text) !important;
+  box-shadow: var(--agl-menu-shadow) !important;
+  backdrop-filter: blur(18px) saturate(1.04) !important;
+  animation: agl-card-settle 220ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  [style*="--thread-resource-card-row-padding-x"] [class~="group/turn-diff-header"][class~="bg-token-bg-secondary"] {
+  border-bottom: 1px solid var(--agl-menu-border) !important;
+  background: var(--agl-menu-hover) !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  [class*="--thread-resource-card-row-padding-x"] [class~="group/turn-diff-header"]
+  [class~="size-10"][class~="bg-token-bg-secondary"] svg {
+  color: var(--agl-red) !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  [class*="--thread-resource-card-row-padding-x"] [class~="thread-diff-virtualized"]
+  button > span[aria-hidden="true"],
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  [class*="--thread-resource-card-row-padding-x"] [class~="thread-diff-virtualized"]
+  button > span[aria-hidden="true"] :is(span, [class*="text-token"]) {
+  color: #fff !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  [style*="--thread-resource-card-row-padding-x"]
+  :is(button, [role="button"], [class~="group/turn-diff-row"]) {
+  border-radius: 4px !important;
+  color: var(--agl-menu-text) !important;
+  transition: background-color 140ms ease, color 140ms ease !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  [style*="--thread-resource-card-row-padding-x"] [class~="group/turn-diff-row"] {
+  background: rgba(24, 31, 38, .72) !important;
+  color: #fff !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  [style*="--thread-resource-card-row-padding-x"] [class~="group/turn-diff-row"]
+  :is(span, svg, [class*="text-token"]) {
+  color: inherit !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  [style*="--thread-resource-card-row-padding-x"]
+  :is(button, [role="button"], [class~="group/turn-diff-row"]):is(:hover, :focus-visible) {
+  background: var(--agl-menu-hover) !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  [style*="--thread-resource-card-row-padding-x"] :is(svg, [class*="text-token"]) {
+  color: inherit !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  [style*="--thread-resource-card-row-padding-x"] [class*="decoration-added"] {
+  color: #00a84f !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina .thread-scroll-container
+  [style*="--thread-resource-card-row-padding-x"] [class*="decoration-deleted"] {
+  color: #e3482f !important;
+}
+
+@keyframes agl-glass-fade {
+  from {
+    opacity: 0;
+    filter: saturate(.88);
+  }
+  to {
+    opacity: 1;
+    filter: saturate(1);
+  }
+}
+
+@keyframes agl-card-settle {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes agl-home-copy-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes agl-home-card-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 7px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes agl-signal-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--agl-red) 0%, transparent);
+  }
+  45% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--agl-red) 18%, transparent);
+  }
 }
 
 /* The top-right pinned-summary panel is thread-owned floating content rather
@@ -1266,29 +1710,120 @@ html.codex-dream-skin.dream-variant-angelina .dream-home [data-testid="home-icon
 }
 
 html.codex-dream-skin.dream-variant-angelina .dream-home [data-feature="game-source"] {
+  max-width: min(52%, 580px) !important;
   color: #fff !important;
-  font-weight: 700 !important;
+  font-size: clamp(42px, 2.7vw, 54px) !important;
+  font-weight: 760 !important;
+  letter-spacing: -.035em;
+  line-height: 1.18 !important;
   text-shadow: 0 2px 12px rgba(12, 19, 30, .68);
+  animation: agl-home-copy-enter 620ms cubic-bezier(.22, 1, .36, 1) 120ms both;
 }
 
-html.codex-dream-skin.dream-variant-angelina .group\/home-suggestions button {
-  min-height: 104px !important;
-  border: 1px solid var(--agl-line) !important;
+html.codex-dream-skin.dream-variant-angelina.dream-parallax .dream-home [data-feature="game-source"],
+html.codex-dream-skin.dream-variant-angelina.dream-parallax #codex-dream-skin-chrome
+  :is(.agl-kicker, .agl-quote, .agl-clock) {
+  translate: var(--dream-copy-parallax-x, 0) var(--dream-copy-parallax-y, 0);
+  will-change: translate;
+}
+
+html.codex-dream-skin.dream-variant-angelina.dream-art-wide main.main-surface.dream-home-shell
+  .dream-home > div:first-child > div:first-child > div:first-child > div:first-child > div:first-child {
+  width: min(52%, 580px) !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina .dream-home [data-feature="game-source"] button {
+  margin: 0 .08em !important;
+  padding: .04em .24em .08em !important;
+  border-color: color-mix(in srgb, var(--agl-red) 74%, rgba(255, 255, 255, .68)) !important;
+  border-radius: .28em !important;
+  color: var(--agl-red) !important;
+  background: color-mix(in srgb, var(--agl-red) 10%, transparent) !important;
+  box-shadow: none !important;
+  font-weight: 760 !important;
+  text-shadow: none !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina.dream-art-wide main.main-surface.dream-home-shell
+  .dream-home > div:first-child > div:first-child > div:first-child > div:nth-child(2) {
+  transform: translateY(clamp(230px, 26dvh, 320px)) !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina.dream-art-wide main.main-surface.dream-home-shell
+  .dream-home .group\/home-suggestions {
+  width: min(100%, 1040px) !important;
+  max-width: 1040px !important;
+  margin-inline: auto !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina.dream-art-wide main.main-surface.dream-home-shell
+  .dream-home .group\/home-suggestions > div > div {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina.dream-art-wide main.main-surface.dream-home-shell
+  .dream-home .group\/home-suggestions button {
+  min-height: 88px !important;
+  height: 88px !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 14px !important;
+  padding: 12px 14px !important;
+  border: 1px solid var(--agl-user-bubble-border) !important;
   border-radius: 6px !important;
-  background: var(--agl-suggestion) !important;
+  background: var(--agl-user-bubble) !important;
   color: var(--agl-ink) !important;
-  box-shadow: 0 6px 16px rgba(35, 31, 32, .08) !important;
+  box-shadow: var(--agl-user-bubble-shadow) !important;
+  backdrop-filter: blur(8px) saturate(1.02) !important;
 }
 
-html.codex-dream-skin.dream-variant-angelina .group\/home-suggestions button:hover {
+html.codex-dream-skin.dream-variant-angelina.dream-art-wide main.main-surface.dream-home-shell
+  .dream-home .group\/home-suggestions button > span:first-child {
+  width: auto !important;
+  flex: 0 0 auto !important;
+  justify-content: center !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina.dream-art-wide main.main-surface.dream-home-shell
+  .dream-home .group\/home-suggestions button > span:first-child > span:first-child {
+  display: grid !important;
+  place-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;
+  height: 40px !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina.dream-art-wide main.main-surface.dream-home-shell
+  .dream-home .group\/home-suggestions button svg {
+  display: block !important;
+  margin: 0 !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina.dream-art-wide main.main-surface.dream-home-shell
+  .dream-home .group\/home-suggestions button > span:last-child {
+  width: auto !important;
+  min-height: 0 !important;
+  flex: 1 1 auto !important;
+  margin-top: 0 !important;
+  justify-content: center !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina.dream-art-wide main.main-surface.dream-home-shell
+  .dream-home .group\/home-suggestions button:hover {
   border-color: rgba(158, 47, 46, .62) !important;
-  background: var(--agl-suggestion-hover) !important;
-  box-shadow: 0 8px 20px rgba(35, 31, 32, .12), inset 0 -2px 0 var(--agl-red) !important;
+  background: color-mix(in srgb, var(--agl-user-bubble) 78%, var(--agl-red) 22%) !important;
+  box-shadow: var(--agl-user-bubble-shadow), inset 0 -2px 0 var(--agl-red) !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina.dream-art-wide main.main-surface.dream-home-shell
+  .dream-home .group\/home-suggestions button > span:last-child {
+  color: var(--agl-ink) !important;
 }
 
 html.codex-dream-skin.dream-variant-angelina .composer-surface-chrome {
   border: 1px solid rgba(255, 255, 255, .24) !important;
-  border-radius: 6px !important;
+  border-radius: 12px !important;
   background: var(--agl-glass-composer) !important;
   color: var(--agl-glass-text) !important;
   box-shadow: 0 14px 30px rgba(20, 25, 30, .26), inset 3px 0 0 var(--agl-red), inset 0 1px rgba(255, 255, 255, .12) !important;
@@ -1422,7 +1957,8 @@ html.codex-dream-skin.dream-variant-angelina [data-codex-composer-root] > div:no
 
 html.codex-dream-skin.dream-variant-angelina .dream-home-utility {
   border-color: rgba(255, 255, 255, .18) !important;
-  border-radius: 6px 6px 0 0 !important;
+  border-radius: 12px 12px 0 0 !important;
+  margin-bottom: 4px !important;
   background: var(--agl-glass-utility) !important;
   color: var(--agl-glass-text) !important;
   backdrop-filter: blur(16px) saturate(1.04) !important;
@@ -1455,8 +1991,8 @@ html.codex-dream-skin.dream-variant-angelina #codex-dream-skin-chrome.angelina-a
 
 html.codex-dream-skin.dream-variant-angelina .agl-kicker {
   position: absolute;
-  left: 26px;
-  top: 20px;
+  left: 40px;
+  top: clamp(28px, 3.2dvh, 40px);
   display: flex;
   align-items: baseline;
   gap: 12px;
@@ -1466,61 +2002,146 @@ html.codex-dream-skin.dream-variant-angelina .agl-kicker {
 }
 
 html.codex-dream-skin.dream-variant-angelina .agl-kicker b {
-  font-size: 17px;
+  font-size: clamp(20px, 1.35vw, 24px);
   line-height: 1;
   font-weight: 750;
+  animation: agl-home-copy-enter 520ms cubic-bezier(.22, 1, .36, 1) both;
 }
 
-html.codex-dream-skin.dream-variant-angelina .agl-kicker span,
-html.codex-dream-skin.dream-variant-angelina .agl-coordinate {
-  font: 600 10px/1.2 "Cascadia Mono", "Microsoft YaHei UI", monospace;
+html.codex-dream-skin.dream-variant-angelina .agl-kicker span {
+  font: 600 clamp(11px, .75vw, 13px)/1.2 "Cascadia Mono", "Microsoft YaHei UI", monospace;
   letter-spacing: 0;
   opacity: .82;
-}
-
-html.codex-dream-skin.dream-variant-angelina .agl-status {
-  position: absolute;
-  right: 18px;
-  top: 18px;
-  display: flex;
-  gap: 8px;
-  padding: 6px 9px;
-  border: 1px solid rgba(255, 255, 255, .44);
-  border-radius: 3px;
-  background: rgba(29, 36, 43, .56);
-  box-shadow: inset 2px 0 0 var(--agl-teal);
-  font: 600 10px/1 "Cascadia Mono", monospace;
-}
-
-html.codex-dream-skin.dream-variant-angelina .agl-status b {
-  color: #9fe1dc;
+  animation: agl-home-copy-enter 520ms cubic-bezier(.22, 1, .36, 1) 60ms both;
 }
 
 html.codex-dream-skin.dream-variant-angelina .agl-quote {
   position: absolute;
-  left: 26px;
-  bottom: 19px;
-  max-width: 42%;
-  color: rgba(255, 255, 255, .82);
-  font: 500 11px/1.4 "Cascadia Mono", "Microsoft YaHei UI", monospace;
+  left: 40px;
+  top: clamp(255px, 25dvh, 286px);
+  max-width: min(52%, 580px);
+  color: rgba(255, 255, 255, .88);
+  font: 600 clamp(17px, 1.15vw, 21px)/1.45 "Cascadia Mono", "Microsoft YaHei UI", monospace;
+  letter-spacing: .01em;
   text-shadow: 0 2px 10px rgba(12, 19, 30, .7);
+  animation: agl-home-copy-enter 560ms cubic-bezier(.22, 1, .36, 1) 300ms both;
 }
 
-html.codex-dream-skin.dream-variant-angelina .agl-coordinate {
+html.codex-dream-skin.dream-variant-angelina .agl-clock {
   position: absolute;
-  right: 18px;
-  bottom: 18px;
-  color: rgba(255, 255, 255, .62);
+  left: 40px;
+  top: clamp(298px, 29dvh, 305px);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-top: 5px;
+  border-top: 1px solid rgba(255, 255, 255, .26);
+  color: rgba(255, 255, 255, .82);
+  text-shadow: 0 2px 10px rgba(12, 19, 30, .62);
+  animation: agl-home-copy-enter 500ms cubic-bezier(.22, 1, .36, 1) 420ms both;
+}
+
+html.codex-dream-skin.dream-variant-angelina .agl-clock-time {
+  color: #fff;
+  font: 700 clamp(13px, .95vw, 16px)/1 "Cascadia Mono", "Microsoft YaHei UI", monospace;
+  letter-spacing: .08em;
+}
+
+html.codex-dream-skin.dream-variant-angelina .agl-clock-date {
+  font: 600 clamp(10px, .68vw, 12px)/1 "Cascadia Mono", "Microsoft YaHei UI", monospace;
+  letter-spacing: .04em;
+  opacity: .76;
+}
+
+/* Settings has a stable searchbox anchor. It shares the home wallpaper and
+   parallax layers, while a translucent route overlay keeps native navigation
+   and setting surfaces readable without expensive backdrop blur. */
+html.codex-dream-skin.dream-variant-angelina.dream-art-wide:has(
+  main.main-surface.dream-settings-shell
+) body {
+  background-image: var(--dream-art) !important;
+  background-position: var(--dream-art-position) !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina.dream-parallax.dream-art-wide:has(
+  main.main-surface.dream-settings-shell
+) body {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--dream-canvas) !important;
+  background-image: none !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina.dream-art-wide
+  main.main-surface.dream-settings-shell {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--dream-immersive-edge) 82%, transparent),
+    color-mix(in srgb, var(--dream-immersive-mid) 74%, transparent) 64%,
+    color-mix(in srgb, var(--dream-immersive-far) 58%, transparent)
+  ) !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina.dream-art-wide:has(
+  main.main-surface.dream-settings-shell
+) aside.app-shell-left-panel > div.max-w-full.overflow-hidden {
+  backdrop-filter: none !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina.dream-art-wide
+  main.main-surface.dream-settings-shell [role="main"],
+html.codex-dream-skin.dream-variant-angelina.dream-art-wide
+  main.main-surface.dream-settings-shell
+  [class~="bg-token-main-surface-primary"][class~="h-full"][class~="w-full"] {
+  background: transparent !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina main.main-surface.dream-settings-shell
+  div:has(> [role="searchbox"]) {
+  border-color: var(--agl-menu-border) !important;
+  background: var(--agl-menu-surface) !important;
+  box-shadow: var(--agl-menu-shadow) !important;
+  backdrop-filter: none !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina main.main-surface.dream-settings-shell
+  [role="link"]:is(:hover, [aria-current="page"]) {
+  background: var(--agl-menu-hover) !important;
+  color: var(--agl-menu-text) !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina main.main-surface.dream-settings-shell
+  :is([role="tab"], [role="link"])[aria-selected="true"] {
+  background: var(--agl-menu-hover) !important;
+  color: var(--agl-menu-text) !important;
+  box-shadow: inset 2px 0 0 var(--agl-red) !important;
+}
+
+html.codex-dream-skin.dream-variant-angelina main.main-surface.dream-settings-shell
+  div[class~="overflow-hidden"][class~="rounded-2xl"] {
+  border: 1px solid var(--agl-panel-border) !important;
+  background: var(--agl-panel-surface) !important;
+  box-shadow: var(--agl-panel-shadow) !important;
+  backdrop-filter: none !important;
 }
 
 @media (max-width: 850px) {
-  html.codex-dream-skin.dream-variant-angelina .agl-status,
-  html.codex-dream-skin.dream-variant-angelina .agl-coordinate,
-  html.codex-dream-skin.dream-variant-angelina .agl-quote {
+  html.codex-dream-skin.dream-variant-angelina :is(.agl-quote, .agl-clock) {
     display: none;
   }
 
   html.codex-dream-skin.dream-variant-angelina .agl-kicker {
     left: 18px;
+  }
+}
+
+@media (max-height: 900px) {
+  html.codex-dream-skin.dream-variant-angelina .agl-clock {
+    display: none;
+  }
+
+  html.codex-dream-skin.dream-variant-angelina.dream-art-wide main.main-surface.dream-home-shell
+    .dream-home > div:first-child > div:first-child > div:first-child > div:nth-child(2) {
+    transform: translateY(clamp(108px, 16dvh, 144px)) !important;
   }
 }

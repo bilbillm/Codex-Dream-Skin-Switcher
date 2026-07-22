@@ -126,19 +126,8 @@ function Install-DreamSkinRuntimeEngine {
   $fullStateRoot = [System.IO.Path]::GetFullPath($StateRoot)
   $engine = Get-DreamSkinRuntimeEnginePaths -StateRoot $fullStateRoot
   $required = @(
-    'assets\dream-reference.jpg',
-    'assets\angelina-hero.png',
-    'assets\angelina-thread-bg.jpg',
     'assets\dream-skin.css',
     'assets\renderer-inject.js',
-    'assets\theme.json',
-    'presets\preset-arina-hashimoto\background.jpg',
-    'presets\preset-arina-hashimoto\theme.json',
-    'presets\preset-angelina-midnight-gravity\background.png',
-    'presets\preset-angelina-midnight-gravity\task-background.jpg',
-    'presets\preset-angelina-midnight-gravity\theme.json',
-    'presets\preset-gothic-void-crusade\background.jpg',
-    'presets\preset-gothic-void-crusade\theme.json',
     'scripts\common-windows.ps1',
     'scripts\config-utf8.ps1',
     'scripts\image-metadata.mjs',
@@ -822,5 +811,5 @@ function Stop-DreamSkinCodex {
 function Confirm-DreamSkinRestart {
   param([string]$Message)
   $shell = New-Object -ComObject WScript.Shell
-  return $shell.Popup($Message, 0, 'Angelina Gravity Field', 52) -eq 6
+  return $shell.Popup($Message, 0, 'Codex Dream Skin', 52) -eq 6
 }

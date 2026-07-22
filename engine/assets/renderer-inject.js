@@ -1,7 +1,16 @@
-((cssText, artDataUrl, taskArtDataUrl, rawConfig) => {
+((cssText, artDataUrl, taskArtDataUrl, backgroundArtDataUrl, foregroundArtDataUrl, rawConfig) => {
   const STATE_KEY = "__CODEX_DREAM_SKIN_STATE__";
   const STYLE_ID = "codex-dream-skin-style";
   const CHROME_ID = "codex-dream-skin-chrome";
+  const PARALLAX_ID = "codex-dream-parallax";
+  const PARALLAX_BACKGROUND_ID = "codex-dream-parallax-background";
+  const PARALLAX_FOREGROUND_ID = "codex-dream-parallax-foreground";
+  const LEGACY_PARALLAX_PROPERTIES = [
+    "--dream-parallax-front-x",
+    "--dream-parallax-front-y",
+    "--dream-parallax-back-x",
+    "--dream-parallax-back-y",
+  ];
   const ROOT_CLASSES = [
     "codex-dream-skin",
     "dream-theme-light",
@@ -18,12 +27,23 @@
     "dream-task-ambient",
     "dream-task-banner",
     "dream-task-off",
+    "dream-parallax",
     "dream-variant-angelina",
   ];
   const ROOT_PROPERTIES = [
     "--dream-art",
     "--dream-task-art",
+    "--dream-parallax-background-art",
+    "--dream-parallax-foreground-art",
+    "--dream-copy-parallax-x",
+    "--dream-copy-parallax-y",
     "--dream-art-position",
+    "--dream-art-position-x",
+    "--dream-art-position-y",
+    "--dream-parallax-front-x",
+    "--dream-parallax-front-y",
+    "--dream-parallax-back-x",
+    "--dream-parallax-back-y",
     "--dream-focus-x",
     "--dream-focus-y",
     "--dream-accent",
@@ -31,12 +51,23 @@
     "--dream-image-luma",
   ];
   const HOME_UTILITY_CLASS = "dream-home-utility";
+  const SETTINGS_SHELL_CLASS = "dream-settings-shell";
+  const SETTINGS_SEARCH_SELECTOR = [
+    '[role="searchbox"][aria-label*="设置"]',
+    '[role="searchbox"][aria-label*="settings" i]',
+  ].join(", ");
   const installToken = {};
   let samplingNativeShell = false;
   let observer = null;
+  let cachedNativeAppearance = null;
+  let nativeAppearanceCheckedAt = 0;
+  let lastProfileSignature = "";
   window.__CODEX_DREAM_SKIN_DISABLED__ = false;
 
   const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, Number(value)));
+  const setStyleValue = (style, property, value) => {
+    if (style?.[property] !== value) style[property] = value;
+  };
   const luminance = (red, green, blue) => {
     const linear = [red, green, blue].map((value) => {
       const channel = value / 255;
@@ -80,6 +111,7 @@
       appearance,
       safeArea,
       taskMode,
+      parallax: art.parallax === true,
       variant: config.variant === "angelina" ? "angelina" : null,
       focusX: hasNumber(art.focusX) ? clamp(art.focusX) : null,
       focusY: hasNumber(art.focusY) ? clamp(art.focusY) : null,
@@ -92,8 +124,17 @@
   if (previous?.observer) previous.observer.disconnect();
   if (previous?.timer) clearInterval(previous.timer);
   if (previous?.scheduler?.timeout) clearTimeout(previous.scheduler.timeout);
+  previous?.parallax?.dispose?.();
+  previous?.railJump?.dispose?.();
+  previous?.clock?.dispose?.();
+  previous?.rightPanelRelay?.dispose?.();
+  for (const property of LEGACY_PARALLAX_PROPERTIES) {
+    document.documentElement?.style.removeProperty(property);
+  }
   if (previous?.artUrl) URL.revokeObjectURL(previous.artUrl);
   if (previous?.taskArtUrl && previous.taskArtUrl !== previous.artUrl) URL.revokeObjectURL(previous.taskArtUrl);
+  if (previous?.backgroundArtUrl) URL.revokeObjectURL(previous.backgroundArtUrl);
+  if (previous?.foregroundArtUrl) URL.revokeObjectURL(previous.foregroundArtUrl);
   const createArtUrl = (dataUrl) => {
     const comma = dataUrl.indexOf(",");
     const binary = atob(dataUrl.slice(comma + 1));
@@ -104,7 +145,163 @@
   };
   const artUrl = createArtUrl(artDataUrl);
   const taskArtUrl = taskArtDataUrl ? createArtUrl(taskArtDataUrl) : artUrl;
+  const backgroundArtUrl = backgroundArtDataUrl ? createArtUrl(backgroundArtDataUrl) : null;
+  const foregroundArtUrl = foregroundArtDataUrl ? createArtUrl(foregroundArtDataUrl) : null;
   const config = normalizeConfig(rawConfig);
+  const parallaxEnabled = config.parallax && Boolean(backgroundArtUrl && foregroundArtUrl);
+  let lastParallaxState = null;
+  const writeParallax = (x, y, force = false) => {
+    const pixel = (value) => `${Math.round(value * 100) / 100}px`;
+    const nextState = {
+      copyX: pixel(x * 4),
+      copyY: pixel(y * 2.5),
+      foreground: `translate3d(${pixel(x * 10)}, ${pixel(y * 6)}, 0)`,
+      background: `translate3d(${pixel(x * -5)}, ${pixel(y * -3)}, 0)`,
+    };
+    if (!force && lastParallaxState && Object.keys(nextState)
+      .every((key) => nextState[key] === lastParallaxState[key])) return;
+    const root = document.documentElement;
+    root?.style.setProperty("--dream-copy-parallax-x", nextState.copyX);
+    root?.style.setProperty("--dream-copy-parallax-y", nextState.copyY);
+    const foreground = document.getElementById(PARALLAX_FOREGROUND_ID);
+    const background = document.getElementById(PARALLAX_BACKGROUND_ID);
+    if (foreground && background) {
+      foreground.style.transform = nextState.foreground;
+      background.style.transform = nextState.background;
+    }
+    lastParallaxState = nextState;
+  };
+  const createParallaxController = () => {
+    writeParallax(0, 0);
+    let frame = 0;
+    let targetX = 0;
+    let targetY = 0;
+    const removeLayers = () => document.getElementById(PARALLAX_ID)?.remove();
+    const ensureLayers = () => {
+      if (!parallaxEnabled || !document.body) {
+        removeLayers();
+        return;
+      }
+      let container = document.getElementById(PARALLAX_ID);
+      if (container?.parentElement === document.body) return;
+      container?.remove();
+      container = document.createElement("div");
+      container.id = PARALLAX_ID;
+      container.setAttribute("aria-hidden", "true");
+      const background = document.createElement("div");
+      background.id = PARALLAX_BACKGROUND_ID;
+      const foreground = document.createElement("div");
+      foreground.id = PARALLAX_FOREGROUND_ID;
+      container.appendChild(background);
+      container.appendChild(foreground);
+      document.body.appendChild(container);
+      writeParallax(targetX, targetY, true);
+    };
+    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    if (
+      !parallaxEnabled ||
+      reducedMotion ||
+      typeof window.addEventListener !== "function" ||
+      typeof window.requestAnimationFrame !== "function"
+    ) {
+      return { ensure: ensureLayers, dispose: removeLayers };
+    }
+    const render = () => {
+      frame = 0;
+      writeParallax(targetX, targetY);
+    };
+    const schedule = (x, y) => {
+      if (x === targetX && y === targetY) return;
+      targetX = x;
+      targetY = y;
+      if (!frame) frame = window.requestAnimationFrame(render);
+    };
+    const move = (event) => {
+      const width = Math.max(1, Number(window.innerWidth) || 1);
+      const height = Math.max(1, Number(window.innerHeight) || 1);
+      const x = clamp((Number(event.clientX) / width) * 2 - 1, -1, 1);
+      const y = clamp((Number(event.clientY) / height) * 2 - 1, -1, 1);
+      schedule(x, y);
+    };
+    const reset = () => schedule(0, 0);
+    window.addEventListener("pointermove", move, { passive: true });
+    window.addEventListener("pointerleave", reset);
+    window.addEventListener("blur", reset);
+    return {
+      ensure: ensureLayers,
+      dispose() {
+        window.removeEventListener("pointermove", move);
+        window.removeEventListener("pointerleave", reset);
+        window.removeEventListener("blur", reset);
+        if (frame) window.cancelAnimationFrame?.(frame);
+        frame = 0;
+        removeLayers();
+      },
+    };
+  };
+  const parallax = createParallaxController();
+  const createAngelinaClockController = () => {
+    let timer = null;
+    const dayNames = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+    const pad = (value) => String(value).padStart(2, "0");
+    const update = () => {
+      const time = document.querySelector?.(".agl-clock-time");
+      const date = document.querySelector?.(".agl-clock-date");
+      if (!time || !date) return;
+      const now = new Date();
+      const timeText = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+      const dateText = `${now.getFullYear()}.${pad(now.getMonth() + 1)}.${pad(now.getDate())} / ${dayNames[now.getDay()]}`;
+      if (time.textContent !== timeText) time.textContent = timeText;
+      if (date.textContent !== dateText) date.textContent = dateText;
+    };
+    const ensure = (visible) => {
+      if (!visible) {
+        if (timer) clearInterval(timer);
+        timer = null;
+        return;
+      }
+      update();
+      if (!timer && typeof setInterval === "function") timer = setInterval(update, 1000);
+    };
+    return {
+      ensure,
+      dispose() {
+        if (timer) clearInterval(timer);
+        timer = null;
+      },
+    };
+  };
+  const clock = createAngelinaClockController();
+  const createRailJumpController = () => {
+    let timeout = null;
+    const finish = () => {
+      if (timeout) clearTimeout(timeout);
+      timeout = null;
+      document.querySelectorAll?.('[role="tooltip"][data-dream-rail-jump-active]')
+        ?.forEach((tooltip) => tooltip.removeAttribute("data-dream-rail-jump-active"));
+    };
+    const begin = (event) => {
+      if (!event.target?.closest?.("button[data-thread-user-message-navigation-item-id]")) return;
+      document.querySelectorAll?.("[data-thread-user-message-navigation-tooltip-preview]")
+        ?.forEach((preview) => preview.closest?.('[role="tooltip"]')
+          ?.setAttribute("data-dream-rail-jump-active", ""));
+      if (timeout) clearTimeout(timeout);
+      timeout = setTimeout(finish, 650);
+    };
+    if (config.variant !== "angelina" || typeof document.addEventListener !== "function") {
+      return { dispose: finish };
+    }
+    document.addEventListener("pointerdown", begin, true);
+    document.addEventListener("click", begin, true);
+    return {
+      dispose() {
+        document.removeEventListener?.("pointerdown", begin, true);
+        document.removeEventListener?.("click", begin, true);
+        finish();
+      },
+    };
+  };
+  const railJump = createRailJumpController();
   let profile = {
     ...defaultProfile,
     aspect: config.initialAspect ?? defaultProfile.aspect,
@@ -288,15 +485,25 @@
     document.querySelectorAll(".dream-home").forEach((node) => node.classList.remove("dream-home"));
     document.querySelectorAll(".dream-task").forEach((node) => node.classList.remove("dream-task"));
     document.querySelectorAll(".dream-home-shell").forEach((node) => node.classList.remove("dream-home-shell"));
+    document.querySelectorAll(`.${SETTINGS_SHELL_CLASS}`).forEach((node) => node.classList.remove(SETTINGS_SHELL_CLASS));
     document.querySelectorAll(`.${HOME_UTILITY_CLASS}`).forEach((node) => node.classList.remove(HOME_UTILITY_CLASS));
     document.getElementById(STYLE_ID)?.remove();
     document.getElementById(CHROME_ID)?.remove();
+    document.getElementById(PARALLAX_ID)?.remove();
   };
 
   const applyProfile = (root) => {
     const focusX = config.focusX ?? profile.focusX;
     const focusY = config.focusY ?? profile.focusY;
-    const appearance = config.appearance === "auto" ? detectShellAppearance() : config.appearance;
+    const now = Date.now();
+    const refreshNativeAppearance = config.appearance === "auto" && (
+      !cachedNativeAppearance || now - nativeAppearanceCheckedAt >= 5000
+    );
+    if (refreshNativeAppearance) {
+      cachedNativeAppearance = detectShellAppearance();
+      nativeAppearanceCheckedAt = now;
+    }
+    const appearance = config.appearance === "auto" ? cachedNativeAppearance : config.appearance;
     const focus = focusX < .4 ? "left" : focusX > .6 ? "right" : "center";
     const safeArea = config.safeArea === "auto" ? (profile.safeArea ||
       (focus === "left" ? "right" : focus === "right" ? "left" : "center")) : config.safeArea;
@@ -305,28 +512,42 @@
       : config.taskMode;
     const accent = config.accent || `rgb(${profile.accent.join(" ")})`;
     const accentInk = luminance(...profile.accent) > .42 ? "rgb(26 24 28)" : "rgb(250 248 251)";
-    root.classList.toggle("dream-theme-light", appearance === "light");
-    root.classList.toggle("dream-theme-dark", appearance === "dark");
-    root.classList.toggle("dream-variant-angelina", config.variant === "angelina");
-    root.classList.toggle("dream-art-wide", profile.aspect >= 1.75);
-    root.classList.toggle("dream-art-standard", profile.aspect < 1.75);
-    for (const value of ["left", "center", "right"]) {
-      root.classList.toggle(`dream-focus-${value}`, focus === value);
+    const classStates = [
+      ["dream-theme-light", appearance === "light"],
+      ["dream-theme-dark", appearance === "dark"],
+      ["dream-variant-angelina", config.variant === "angelina"],
+      ["dream-parallax", parallaxEnabled],
+      ["dream-art-wide", profile.aspect >= 1.75],
+      ["dream-art-standard", profile.aspect < 1.75],
+      ...["left", "center", "right"].map((value) => [`dream-focus-${value}`, focus === value]),
+      ...["left", "center", "right", "none"].map((value) => [`dream-safe-${value}`, safeArea === value]),
+      ...["ambient", "banner", "off"].map((value) => [`dream-task-${value}`, taskMode === value]),
+    ];
+    const propertyStates = [
+      ["--dream-art", `url("${artUrl}")`],
+      ["--dream-task-art", `url("${taskArtUrl}")`],
+      ["--dream-art-position", `${Math.round(focusX * 100)}% ${Math.round(focusY * 100)}%`],
+      ["--dream-art-position-x", `${Math.round(focusX * 100)}%`],
+      ["--dream-art-position-y", `${Math.round(focusY * 100)}%`],
+      ["--dream-focus-x", String(focusX)],
+      ["--dream-focus-y", String(focusY)],
+      ["--dream-accent", accent],
+      ["--dream-accent-ink", accentInk],
+      ["--dream-image-luma", profile.luma.toFixed(3)],
+    ];
+    if (parallaxEnabled) {
+      propertyStates.push(
+        ["--dream-parallax-background-art", `url("${backgroundArtUrl}")`],
+        ["--dream-parallax-foreground-art", `url("${foregroundArtUrl}")`],
+      );
     }
-    for (const value of ["left", "center", "right", "none"]) {
-      root.classList.toggle(`dream-safe-${value}`, safeArea === value);
-    }
-    for (const value of ["ambient", "banner", "off"]) {
-      root.classList.toggle(`dream-task-${value}`, taskMode === value);
-    }
-    root.style.setProperty("--dream-art", `url("${artUrl}")`);
-    root.style.setProperty("--dream-task-art", `url("${taskArtUrl}")`);
-    root.style.setProperty("--dream-art-position", `${Math.round(focusX * 100)}% ${Math.round(focusY * 100)}%`);
-    root.style.setProperty("--dream-focus-x", String(focusX));
-    root.style.setProperty("--dream-focus-y", String(focusY));
-    root.style.setProperty("--dream-accent", accent);
-    root.style.setProperty("--dream-accent-ink", accentInk);
-    root.style.setProperty("--dream-image-luma", profile.luma.toFixed(3));
+    const profileSignature = JSON.stringify([classStates, propertyStates]);
+    const profileClassesMatch = classStates.every(([className, enabled]) =>
+      root.classList.contains(className) === enabled);
+    if (profileSignature === lastProfileSignature && profileClassesMatch) return;
+    for (const [className, enabled] of classStates) root.classList.toggle(className, enabled);
+    for (const [property, value] of propertyStates) root.style.setProperty(property, value);
+    lastProfileSignature = profileSignature;
   };
 
   const ensure = () => {
@@ -347,7 +568,7 @@
       return;
     }
 
-    root.classList.add("codex-dream-skin");
+    if (!root.classList.contains("codex-dream-skin")) root.classList.add("codex-dream-skin");
     applyProfile(root);
 
     let style = document.getElementById(STYLE_ID);
@@ -356,12 +577,16 @@
       style.id = STYLE_ID;
       (document.head || root).appendChild(style);
     }
-    if (style.dataset.dreamVersion !== "3") {
+    if (style.dataset.dreamVersion !== "4") {
       style.textContent = cssText;
-      style.dataset.dreamVersion = "3";
+      style.dataset.dreamVersion = "4";
     }
+    parallax.ensure();
 
-    const home = document.querySelector('[role="main"]:has([data-testid="home-icon"])');
+    const home = document.querySelector('[role="main"]:has([data-testid="home-icon"])') ||
+      document.querySelector('[role="main"]:has([class~="group/home-suggestions"])') ||
+      document.querySelector('[class~="group/home-suggestions"]')?.closest?.('[role="main"]') ||
+      null;
     const mainCandidates = [...document.querySelectorAll('[role="main"]')];
     if (!mainCandidates.length) mainCandidates.push(shellMain);
     for (const candidate of mainCandidates) {
@@ -374,6 +599,7 @@
     }
     for (const candidate of utilityBars) candidate.classList.add(HOME_UTILITY_CLASS);
     shellMain.classList.toggle("dream-home-shell", Boolean(home));
+    shellMain.classList.toggle(SETTINGS_SHELL_CLASS, Boolean(document.querySelector(SETTINGS_SEARCH_SELECTOR)));
 
     let chrome = document.getElementById(CHROME_ID);
     if (!chrome || chrome.parentElement !== document.body) {
@@ -388,19 +614,22 @@
     const showAngelinaChrome = config.variant === "angelina" && Boolean(home && hero);
     chrome.classList.toggle("angelina-active", showAngelinaChrome);
     if (showAngelinaChrome) {
-      chrome.innerHTML = `
+      const angelinaChrome = `
         <div class="agl-kicker"><b>ANGELINA</b><span>SR02 / GRAVITY FIELD</span></div>
-        <div class="agl-status"><span>ARTS LINK</span><b>STABLE</b></div>
         <div class="agl-quote">A slow messenger gets caught by the wind.</div>
-        <div class="agl-coordinate">RI-COURIER // 09.81</div>`;
+        <div class="agl-clock"><b class="agl-clock-time">--:--:--</b><span class="agl-clock-date">----.--.-- / ---</span></div>`;
+      const hasAngelinaChrome = chrome.querySelector?.(".agl-kicker") &&
+        chrome.querySelector?.(".agl-quote") && chrome.querySelector?.(".agl-clock");
+      if (!hasAngelinaChrome) chrome.innerHTML = angelinaChrome;
       const box = hero.getBoundingClientRect();
-      chrome.style.left = `${Math.round(box.left)}px`;
-      chrome.style.top = `${Math.round(box.top)}px`;
-      chrome.style.width = `${Math.round(box.width)}px`;
-      chrome.style.height = `${Math.round(box.height)}px`;
+      setStyleValue(chrome.style, "left", `${Math.round(box.left)}px`);
+      setStyleValue(chrome.style, "top", `${Math.round(box.top)}px`);
+      setStyleValue(chrome.style, "width", `${Math.round(box.width)}px`);
+      setStyleValue(chrome.style, "height", `${Math.round(box.height)}px`);
     } else if (chrome.innerHTML) {
       chrome.innerHTML = "";
     }
+    clock.ensure(showAngelinaChrome);
   };
 
   const cleanup = () => {
@@ -411,8 +640,13 @@
     state?.observer?.disconnect();
     if (state?.timer) clearInterval(state.timer);
     if (state?.scheduler?.timeout) clearTimeout(state.scheduler.timeout);
+    state?.parallax?.dispose?.();
+    state?.railJump?.dispose?.();
+    state?.clock?.dispose?.();
     if (state?.artUrl) URL.revokeObjectURL(state.artUrl);
     if (state?.taskArtUrl && state.taskArtUrl !== state.artUrl) URL.revokeObjectURL(state.taskArtUrl);
+    if (state?.backgroundArtUrl) URL.revokeObjectURL(state.backgroundArtUrl);
+    if (state?.foregroundArtUrl) URL.revokeObjectURL(state.foregroundArtUrl);
     delete window[STATE_KEY];
     return true;
   };
@@ -437,7 +671,8 @@
   });
   const timer = setInterval(ensure, 5000);
   window[STATE_KEY] = {
-    ensure, cleanup, observer, timer, scheduler, artUrl, taskArtUrl, profile, config, installToken,
+    ensure, cleanup, observer, timer, scheduler, parallax, railJump, clock, artUrl, taskArtUrl,
+    backgroundArtUrl, foregroundArtUrl, profile, config, installToken,
     version: "3.1.4-angelina",
   };
   ensure();
@@ -449,4 +684,11 @@
     ensure();
   });
   return { installed: true, version: "3.1.4-angelina", adaptive: true };
-})(__DREAM_CSS_JSON__, __DREAM_ART_JSON__, __DREAM_TASK_ART_JSON__, __DREAM_THEME_JSON__)
+})(
+  __DREAM_CSS_JSON__,
+  __DREAM_ART_JSON__,
+  __DREAM_TASK_ART_JSON__,
+  __DREAM_BACKGROUND_ART_JSON__,
+  __DREAM_FOREGROUND_ART_JSON__,
+  __DREAM_THEME_JSON__
+)

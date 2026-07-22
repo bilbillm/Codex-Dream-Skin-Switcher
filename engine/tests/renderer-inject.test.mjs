@@ -8,14 +8,24 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const windowsRoot = path.resolve(here, "..");
 const template = await fs.readFile(path.join(windowsRoot, "assets", "renderer-inject.js"), "utf8");
 const css = await fs.readFile(path.join(windowsRoot, "assets", "dream-skin.css"), "utf8");
-const buildPayload = (config = {}, taskArt = "data:image/jpeg;base64,AA==") => template
+const buildPayload = (
+  config = {},
+  taskArt = "data:image/jpeg;base64,AA==",
+  backgroundArt = null,
+  foregroundArt = null,
+) => template
   .replace("__DREAM_CSS_JSON__", JSON.stringify(".fixture { color: blue; }"))
   .replace("__DREAM_ART_JSON__", JSON.stringify("data:image/png;base64,AA=="))
   .replace("__DREAM_TASK_ART_JSON__", JSON.stringify(taskArt))
+  .replace("__DREAM_BACKGROUND_ART_JSON__", JSON.stringify(backgroundArt))
+  .replace("__DREAM_FOREGROUND_ART_JSON__", JSON.stringify(foregroundArt))
   .replace("__DREAM_THEME_JSON__", JSON.stringify(config));
 const payload = buildPayload();
 
 const singleImagePayload = buildPayload({}, null);
+const parallaxPayload = buildPayload({
+  art: { focusX: .68, focusY: .42, parallax: true },
+}, "data:image/jpeg;base64,AA==", "data:image/png;base64,AA==", "data:image/png;base64,AA==");
 
 assert.match(css, /--agl-glass-chrome:\s*rgba\(47, 56, 64, \.44\)/);
 assert.match(css, /--agl-glass-composer:\s*rgba\(53, 60, 65, \.58\)/);
@@ -38,8 +48,25 @@ assert.match(
 assert.match(css, /dream-variant-angelina \.dream-task::before\s*\{[^}]*filter:\s*blur\(2px\)/s);
 assert.match(
   css,
-  /dream-variant-angelina\.dream-art-wide[^}]*aside\.app-shell-left-panel\s*\{[^}]*border-right:\s*1px solid var\(--agl-sidebar-border\)[^}]*background:\s*linear-gradient[^}]*backdrop-filter:\s*blur\(18px\)/s,
+  /dream-variant-angelina\.dream-art-wide[^}]*aside\.app-shell-left-panel\s*\{[^}]*border-right:\s*1px solid var\(--agl-sidebar-border\)[^}]*background:\s*transparent[^}]*backdrop-filter:\s*none/s,
 );
+assert.match(
+  css,
+  /dream-variant-angelina\.dream-art-wide[^}]*aside\.app-shell-left-panel\s*>\s*div\.max-w-full\.overflow-hidden\s*\{[^}]*background:\s*linear-gradient[^}]*backdrop-filter:\s*blur\(18px\) saturate\(1\.04\)/s,
+);
+assert.doesNotMatch(css, /@keyframes\s+agl-sidebar-backdrop-handoff/);
+assert.match(
+  css,
+  /dream-variant-angelina:is\(\.dream-task-ambient, \.dream-task-banner\)[^}]*body\s*\{[^}]*background-image:\s*var\(--dream-task-art, var\(--dream-art\)\)[^}]*background-position:\s*var\(--dream-art-position\)/s,
+);
+assert.match(
+  css,
+  /#codex-dream-parallax\s*\{[^}]*position:\s*fixed[^}]*contain:\s*strict/s,
+);
+assert.match(css, /#codex-dream-parallax-background\s*\{[^}]*background-image:\s*var\(--dream-parallax-background-art\)[^}]*transform:\s*translate3d\(0,\s*0,\s*0\)[^}]*will-change:\s*transform/s);
+assert.match(css, /#codex-dream-parallax-foreground\s*\{[^}]*background-image:\s*var\(--dream-parallax-foreground-art\)[^}]*transform:\s*translate3d\(0,\s*0,\s*0\)[^}]*will-change:\s*transform/s);
+assert.doesNotMatch(css, /dream-parallax[^}]*body\s*\{[^}]*transition:\s*background-position/s);
+assert.match(template, /requestAnimationFrame\(render\)/);
 assert.match(css, /vertical-scroll-fade-mask[^}]*scrollbar-color:\s*var\(--agl-action\) var\(--agl-scrollbar-track\)/s);
 assert.match(css, /::-webkit-scrollbar\s*\{[^}]*width:\s*12px/s);
 assert.match(
@@ -68,6 +95,14 @@ assert.match(
   css,
   /aside\[data-app-shell-focus-area="right-panel"\][^{]*> \[class~="bg-token-main-surface-primary"\]\s*\{[^}]*background:\s*var\(--agl-panel-surface\)[^}]*backdrop-filter:\s*blur\(18px\)/s,
 );
+assert.doesNotMatch(
+  css,
+  /aside\[data-app-shell-focus-area="right-panel"\][^{]*> \[class~="bg-token-main-surface-primary"\]\s*\{[^}]*(?:position:\s*relative|overflow:\s*hidden)/s,
+  "The themed right-panel surface must preserve Codex's absolute full-height geometry.",
+);
+assert.doesNotMatch(css, /right-panel[^}]*bg-token-main-surface-primary[^}]*::before\s*\{/s);
+assert.doesNotMatch(css, /@keyframes\s+agl-right-panel-blur-relay/);
+assert.doesNotMatch(template, /createRightPanelRelay|data-dream-right-panel-relay/);
 assert.match(
   css,
   /data-app-shell-tab-strip-controller="bottom"[^}]*\)\s*\{[^}]*background:\s*var\(--agl-panel-surface\)[^}]*backdrop-filter:\s*blur\(18px\)/s,
@@ -92,6 +127,119 @@ assert.match(
 assert.match(css, /group\/summary-panel-item[^}]*background:\s*var\(--agl-menu-hover\)/s);
 assert.match(css, /top-\(--thread-floating-content-top-inset\)[^}]*section::after\s*\{[^}]*background:\s*var\(--agl-menu-border\)/s);
 assert.match(css, /rounded-3xl[^}]*header\[class~="bg-token-dropdown-background"\]\s*\{[^}]*background:\s*transparent/s);
+assert.doesNotMatch(
+  css,
+  /aside\.app-shell-left-panel\s*>\s*\[role="separator"\]\s*\{[^}]*(?:width|transform):/s,
+);
+assert.match(
+  css,
+  /aside\.app-shell-left-panel[^}]*>\s*\[role="separator"\]\s*\.sidebar-resize-handle-line\s*\{[^}]*width:\s*2px[^}]*height:\s*100%[^}]*background:\s*linear-gradient\([^}]*var\(--agl-red\)/s,
+);
+assert.doesNotMatch(css, /sidebar-resize-handle-line\s*\{[^}]*mask-image:/s);
+assert.match(
+  css,
+  /data-thread-user-message-navigation-item-id[^}]*>\s*span\s*>\s*span\s*\{[^}]*background:\s*var\(--agl-red\)/s,
+);
+assert.match(
+  css,
+  /\[role="tooltip"\]\s*\{[^}]*background:\s*var\(--agl-menu-surface\)[^}]*backdrop-filter:\s*blur\(18px\)/s,
+);
+assert.match(
+  css,
+  /global-command-menu-dialog\s*>\s*\[cmdk-root\]\s*\{[^}]*background:\s*var\(--agl-menu-surface\)[^}]*backdrop-filter:\s*blur\(18px\)/s,
+);
+assert.match(
+  css,
+  /data-thread-user-message-navigation-tooltip-preview[^}]*\{[^}]*background:\s*transparent[^}]*backdrop-filter:\s*none/s,
+);
+assert.doesNotMatch(
+  css,
+  /data-thread-user-message-navigation-item-id[^}]*>\s*span\s*>\s*span\s*\{[^}]*(?:box-shadow|filter|transition):/s,
+);
+assert.match(css, /\[role="tooltip"\]\[data-dream-rail-jump-active\][^}]*\{[^}]*visibility:\s*hidden/s);
+assert.match(template, /document\.addEventListener\("click", begin, true\)/);
+assert.match(template, /setAttribute\("data-dream-rail-jump-active", ""\)/);
+assert.doesNotMatch(template, /classList\.add\("dream-rail-jump-active"\)/);
+assert.match(
+  css,
+  /thread-resource-card-row-padding-x[^}]*\{[^}]*background:\s*var\(--agl-menu-surface\)[^}]*backdrop-filter:\s*blur\(18px\)/s,
+);
+assert.match(css, /group\/turn-diff-header[^}]*bg-token-bg-secondary[^}]*background:\s*var\(--agl-menu-hover\)/s);
+assert.match(css, /class\*="--thread-resource-card-row-padding-x"[^}]*group\/turn-diff-header[^}]*size-10[^}]*bg-token-bg-secondary[^}]*svg\s*\{[^}]*color:\s*var\(--agl-red\)/s);
+assert.match(css, /class\*="--thread-resource-card-row-padding-x"[^}]*thread-diff-virtualized[^}]*\]\s*button\s*>\s*span\[aria-hidden="true"\][^}]*\{[^}]*color:\s*#fff/s);
+assert.match(css, /group\/turn-diff-row[^}]*\{[^}]*background:\s*rgba\(24, 31, 38, \.72\)[^}]*color:\s*#fff/s);
+assert.match(css, /thread-scroll-container pre\s*\{[^}]*background:\s*var\(--agl-code-surface\)[^}]*backdrop-filter:\s*blur\(18px\)/s);
+assert.match(css, /_codeBlock_[^}]*:has\(pre\)[^}]*\{[^}]*background:\s*var\(--agl-code-surface\)/s);
+assert.match(
+  css,
+  /data-markdown-copy="code-block"[^}]*\{[^}]*border-radius:\s*8px[^}]*background:\s*var\(--agl-code-surface\)[^}]*backdrop-filter:\s*blur\(18px\)/s,
+);
+assert.match(
+  css,
+  /data-markdown-copy="code-block"[^}]*data-markdown-copy="exclude"[^}]*\{[^}]*border-bottom:\s*1px solid var\(--agl-code-border\)[^}]*background:\s*rgba\(255, 255, 255, \.06\)/s,
+);
+assert.match(
+  css,
+  /data-markdown-copy="code-block"[^}]*>\s*div\[dir="ltr"\][^}]*\{[^}]*background:\s*transparent/s,
+);
+assert.match(css, /role="alertdialog"[^}]*global-command-menu-dialog[^}]*\{[^}]*background:\s*var\(--agl-panel-surface\)[^}]*backdrop-filter:\s*blur\(18px\)/s);
+assert.match(css, /aside\[class~="bg-token-main-surface-primary"\][^}]*gap-3[^}]*\{[^}]*background:\s*var\(--agl-error-surface\)[^}]*backdrop-filter:\s*blur\(18px\)/s);
+assert.match(css, /dream-home-utility\s*\{[^}]*border-radius:\s*12px 12px 0 0[^}]*margin-bottom:\s*4px/s);
+assert.match(css, /dream-home:has\(\.dream-home-utility\) \.composer-surface-chrome\s*\{[^}]*border-radius:\s*12px/s);
+assert.match(css, /@keyframes\s+agl-signal-pulse/);
+assert.doesNotMatch(
+  css,
+  /aside\.app-shell-left-panel::before\s*\{[^}]*content:\s*"SR02"/s,
+);
+assert.match(
+  css,
+  /\.dream-home\s*>\s*div:first-child\s*>\s*div:first-child\s*>\s*div:first-child\s*\{[^}]*overflow:\s*visible/s,
+);
+assert.match(
+  css,
+  /dream-variant-angelina\.dream-art-wide[^}]*\.group\\\/home-suggestions button\s*\{[^}]*background:\s*var\(--agl-user-bubble\)[^}]*backdrop-filter:\s*blur\(8px\)/s,
+);
+assert.match(css, /group\\\/home-suggestions\s*\{[^}]*max-width:\s*1040px/s);
+assert.match(css, /group\\\/home-suggestions\s*>\s*div\s*>\s*div\s*\{[^}]*grid-template-columns:\s*repeat\(4,/s);
+assert.match(css, /home-suggestions button\s*>\s*span:first-child\s*>\s*span:first-child\s*\{[^}]*place-items:\s*center/s);
+assert.match(css, /dream-home \[data-feature="game-source"\]\s*\{[^}]*font-size:\s*clamp\(42px, 2\.7vw, 54px\)[^}]*animation:\s*agl-home-copy-enter/s);
+assert.match(css, /game-source"\] button\s*\{[^}]*color:\s*var\(--agl-red\)[^}]*background:\s*color-mix/s);
+assert.match(css, /div:nth-child\(2\)\s*\{[^}]*transform:\s*translateY\(clamp\(230px, 26dvh, 320px\)\)/s);
+assert.match(css, /@keyframes\s+agl-home-copy-enter/);
+assert.match(css, /@keyframes\s+agl-home-card-enter/);
+assert.match(css, /dream-variant-angelina\.dream-parallax \.dream-home \[data-feature="game-source"\][^}]*translate:\s*var\(--dream-copy-parallax-x, 0\) var\(--dream-copy-parallax-y, 0\)/s);
+assert.match(template, /<div class="agl-kicker"[\s\S]*<div class="agl-quote"[\s\S]*<div class="agl-clock"/);
+assert.match(template, /createAngelinaClockController/);
+assert.match(template, /setInterval\(update, 1000\)/);
+assert.match(template, /clock\.ensure\(showAngelinaChrome\)/);
+assert.match(template, /previous\?\.clock\?\.dispose\?\./);
+assert.match(template, /state\?\.clock\?\.dispose\?\./);
+assert.match(template, /const setStyleValue = \(style, property, value\) =>/);
+assert.match(template, /setStyleValue\(chrome\.style, "left",/);
+assert.doesNotMatch(template, /agl-(?:status|coordinate)/);
+assert.match(template, /--dream-copy-parallax-x/);
+assert.match(template, /root\?\.style\.setProperty\("--dream-copy-parallax-x", nextState\.copyX\)/);
+assert.match(css, /\.agl-clock\s*\{[^}]*top:\s*clamp\(298px, 29dvh, 305px\)[^}]*animation:\s*agl-home-copy-enter/s);
+assert.match(css, /\.agl-clock-time\s*\{[^}]*font:\s*700 clamp\(13px, \.95vw, 16px\)/s);
+assert.match(template, /SETTINGS_SHELL_CLASS = "dream-settings-shell"/);
+assert.match(template, /\[role="searchbox"\]\[aria-label\*="设置"\]/);
+assert.match(template, /shellMain\.classList\.toggle\(SETTINGS_SHELL_CLASS/);
+assert.match(
+  css,
+  /dream-variant-angelina\.dream-art-wide:has\(\s*main\.main-surface\.dream-settings-shell\s*\) body\s*\{[^}]*background-image:\s*var\(--dream-art\)/s,
+);
+assert.match(
+  css,
+  /dream-variant-angelina\.dream-parallax\.dream-art-wide:has\(\s*main\.main-surface\.dream-settings-shell\s*\) body\s*\{[^}]*isolation:\s*isolate[^}]*background-image:\s*none/s,
+);
+assert.match(css, /main\.main-surface\.dream-settings-shell\s*\{[^}]*color-mix\(in srgb, var\(--dream-immersive-edge\) 82%, transparent\)/s);
+assert.match(css, /dream-settings-shell\s*\) aside\.app-shell-left-panel > div\.max-w-full\.overflow-hidden\s*\{[^}]*backdrop-filter:\s*none/s);
+assert.match(css, /main\.main-surface\.dream-settings-shell\s+div:has\(> \[role="searchbox"\]\)\s*\{[^}]*background:\s*var\(--agl-menu-surface\)[^}]*backdrop-filter:\s*none/s);
+assert.match(css, /main\.main-surface\.dream-settings-shell\s+div\[class~="overflow-hidden"\]\[class~="rounded-2xl"\]\s*\{[^}]*background:\s*var\(--agl-panel-surface\)[^}]*backdrop-filter:\s*none/s);
+assert.match(
+  css,
+  /prefers-reduced-motion:\s*reduce[^}]*animation-duration:\s*\.01ms[^}]*animation-iteration-count:\s*1/s,
+);
 
 function createFixture({
   shellPresent,
@@ -99,18 +247,26 @@ function createFixture({
   sidebarPresent = shellPresent,
   staleSkin = false,
   homePresent = false,
+  homeSuggestionsPresent = false,
   utilityPresent = false,
+  settingsPresent = false,
   shellAppearance = "dark",
   computedColorScheme = "",
   osAppearance = "light",
+  reducedMotion = false,
   analysisFixture = null,
 }) {
   const nodes = new Map();
   const rootClasses = new Set(staleSkin ? ["codex-dream-skin"] : []);
   const rootStyles = new Map(staleSkin ? [["--dream-art", "url(\"blob:stale\")"]] : []);
+  const rootStyleWrites = [];
   const revokedUrls = [];
   const observers = [];
+  const windowListeners = new Map();
+  const animationFrames = new Map();
   let objectUrlCount = 0;
+  let nextAnimationFrame = 0;
+  let computedStyleCalls = 0;
   let hasMain = mainPresent;
   let hasSidebar = sidebarPresent;
   let root;
@@ -149,7 +305,10 @@ function createFixture({
     classList: makeClassList(rootClasses, queueRootClassMutation),
     getAttribute() { return null; },
     style: {
-      setProperty(key, value) { rootStyles.set(key, value); },
+      setProperty(key, value) {
+        rootStyleWrites.push([key, value]);
+        rootStyles.set(key, value);
+      },
       removeProperty(key) { rootStyles.delete(key); },
     },
     appendChild(node) {
@@ -215,6 +374,10 @@ function createFixture({
       textContent: "",
       innerHTML: "",
       setAttribute() {},
+      appendChild(node) {
+        node.parentElement = this;
+        nodes.set(node.id, node);
+      },
       remove() { nodes.delete(this.id); },
     };
   };
@@ -240,7 +403,12 @@ function createFixture({
       if (selector === '[role="main"]:has([data-testid="home-icon"])') {
         return hasMain && homePresent ? routeMain : null;
       }
+      if (selector === '[role="main"]:has([class~="group/home-suggestions"])') {
+        return hasMain && homeSuggestionsPresent ? routeMain : null;
+      }
+      if (selector === '[class~="group/home-suggestions"]') return null;
       if (selector === '[role="main"]') return hasMain ? routeMain : null;
+      if (selector.includes('[role="searchbox"]')) return settingsPresent ? {} : null;
       return null;
     },
     querySelectorAll(selector) {
@@ -248,6 +416,9 @@ function createFixture({
       if (selector === ".dream-task") return routeClasses.has("dream-task") ? [routeMain] : [];
       if (selector === ".dream-home-utility") {
         return utilityClasses.has("dream-home-utility") ? [utilityNode] : [];
+      }
+      if (selector === ".dream-settings-shell") {
+        return shellMain.classList.contains("dream-settings-shell") ? [shellMain] : [];
       }
       if (!staleSkin) return [];
       if (selector === ".dream-home") return [staleHome];
@@ -257,7 +428,27 @@ function createFixture({
   };
   const context = {
     window: {
-      matchMedia() { return { matches: osAppearance === "dark" }; },
+      innerWidth: 1000,
+      innerHeight: 500,
+      matchMedia(query) {
+        return { matches: query.includes("reduced-motion") ? reducedMotion : osAppearance === "dark" };
+      },
+      addEventListener(type, listener) {
+        if (!windowListeners.has(type)) windowListeners.set(type, new Set());
+        windowListeners.get(type).add(listener);
+      },
+      removeEventListener(type, listener) {
+        windowListeners.get(type)?.delete(listener);
+      },
+      dispatchEvent(event) {
+        for (const listener of windowListeners.get(event.type) ?? []) listener(event);
+      },
+      requestAnimationFrame(callback) {
+        nextAnimationFrame += 1;
+        animationFrames.set(nextAnimationFrame, callback);
+        return nextAnimationFrame;
+      },
+      cancelAnimationFrame(id) { animationFrames.delete(id); },
     },
     document,
     MutationObserver: class {
@@ -293,7 +484,10 @@ function createFixture({
     clearInterval: () => {},
     setTimeout: () => 2,
     clearTimeout: () => {},
-    getComputedStyle() { return { colorScheme: computedColorScheme }; },
+    getComputedStyle() {
+      computedStyleCalls += 1;
+      return { colorScheme: computedColorScheme };
+    },
   };
   if (analysisFixture) {
     context.Image = class {
@@ -309,9 +503,19 @@ function createFixture({
     observers,
     rootClasses,
     rootStyles,
+    rootStyleWrites,
     revokedUrls,
     routeClasses,
     utilityClasses,
+    shellMain,
+    windowListeners,
+    computedStyleCalls() { return computedStyleCalls; },
+    pendingAnimationFrames() { return animationFrames.size; },
+    flushAnimationFrames() {
+      const callbacks = [...animationFrames.values()];
+      animationFrames.clear();
+      for (const callback of callbacks) callback(16.67);
+    },
     setShellPresent(value) {
       hasMain = value;
       hasSidebar = value;
@@ -346,6 +550,49 @@ assert.equal(singleImage.rootStyles.get("--dream-art"), 'url("blob:fixture-1")')
 assert.equal(singleImage.rootStyles.get("--dream-task-art"), 'url("blob:fixture-1")');
 assert.equal(singleImage.context.window.__CODEX_DREAM_SKIN_STATE__.cleanup(), true);
 assert.deepEqual(singleImage.revokedUrls, ["blob:fixture-1"]);
+
+const parallax = createFixture({ shellPresent: true });
+vm.runInNewContext(parallaxPayload, parallax.context);
+assert.equal(parallax.rootClasses.has("dream-parallax"), true);
+assert.equal(parallax.rootStyles.get("--dream-art-position-x"), "68%");
+assert.equal(parallax.rootStyles.get("--dream-art-position-y"), "42%");
+assert.equal(parallax.rootStyles.get("--dream-parallax-background-art"), 'url("blob:fixture-3")');
+assert.equal(parallax.rootStyles.get("--dream-parallax-foreground-art"), 'url("blob:fixture-4")');
+assert.equal(parallax.nodes.has("codex-dream-parallax"), true);
+assert.equal(parallax.nodes.has("codex-dream-parallax-background"), true);
+assert.equal(parallax.nodes.has("codex-dream-parallax-foreground"), true);
+assert.equal(parallax.nodes.get("codex-dream-parallax-foreground").style.transform, "translate3d(0px, 0px, 0)");
+parallax.context.window.dispatchEvent({ type: "pointermove", clientX: 0, clientY: 500 });
+parallax.context.window.dispatchEvent({ type: "pointermove", clientX: 1000, clientY: 0 });
+assert.equal(parallax.pendingAnimationFrames(), 1);
+assert.equal(parallax.nodes.get("codex-dream-parallax-foreground").style.transform, "translate3d(0px, 0px, 0)");
+parallax.flushAnimationFrames();
+assert.equal(parallax.nodes.get("codex-dream-parallax-foreground").style.transform, "translate3d(10px, -6px, 0)");
+assert.equal(parallax.nodes.get("codex-dream-parallax-background").style.transform, "translate3d(-5px, 3px, 0)");
+parallax.context.window.dispatchEvent({ type: "pointermove", clientX: 1000, clientY: 0 });
+assert.equal(parallax.pendingAnimationFrames(), 0,
+  "Repeated pointer coordinates must not schedule a compositor write.");
+assert.equal(parallax.context.window.__CODEX_DREAM_SKIN_STATE__.cleanup(), true);
+assert.equal(parallax.windowListeners.get("pointermove")?.size ?? 0, 0);
+assert.equal(parallax.nodes.has("codex-dream-parallax"), false);
+
+const reducedParallax = createFixture({ shellPresent: true, reducedMotion: true });
+vm.runInNewContext(parallaxPayload, reducedParallax.context);
+assert.equal(reducedParallax.rootClasses.has("dream-parallax"), true);
+assert.equal(reducedParallax.windowListeners.get("pointermove")?.size ?? 0, 0);
+assert.equal(reducedParallax.nodes.has("codex-dream-parallax"), true);
+assert.equal(reducedParallax.context.window.__CODEX_DREAM_SKIN_STATE__.cleanup(), true);
+
+const steadyProfile = createFixture({ shellPresent: true });
+vm.runInNewContext(payload, steadyProfile.context);
+const initialProfileWrites = steadyProfile.rootStyleWrites.length;
+const initialComputedStyleCalls = steadyProfile.computedStyleCalls();
+steadyProfile.context.window.__CODEX_DREAM_SKIN_STATE__.ensure();
+assert.equal(steadyProfile.rootStyleWrites.length, initialProfileWrites,
+  "A stable renderer pass must not rewrite root theme properties.");
+assert.equal(steadyProfile.computedStyleCalls(), initialComputedStyleCalls,
+  "A stable renderer pass must not repeat native appearance layout reads.");
+assert.equal(steadyProfile.context.window.__CODEX_DREAM_SKIN_STATE__.cleanup(), true);
 
 const reinjected = createFixture({ shellPresent: true });
 vm.runInNewContext(payload, reinjected.context);
@@ -427,6 +674,27 @@ assert.equal(configured.utilityClasses.has("dream-home-utility"), true);
 assert.equal(configured.context.window.__CODEX_DREAM_SKIN_STATE__.cleanup(), true);
 assert.equal(configured.utilityClasses.has("dream-home-utility"), false);
 
+const settings = createFixture({ shellPresent: true, settingsPresent: true });
+vm.runInNewContext(buildPayload({ variant: "angelina" }), settings.context);
+assert.equal(settings.shellMain.classList.contains("dream-settings-shell"), true);
+assert.equal(settings.routeClasses.has("dream-task"), true);
+assert.equal(settings.context.window.__CODEX_DREAM_SKIN_STATE__.cleanup(), true);
+assert.equal(settings.shellMain.classList.contains("dream-settings-shell"), false);
+
+const parallaxSettings = createFixture({ shellPresent: true, settingsPresent: true });
+vm.runInNewContext(buildPayload(
+  { variant: "angelina", art: { parallax: true } },
+  "data:image/jpeg;base64,AA==",
+  "data:image/png;base64,AA==",
+  "data:image/png;base64,AA==",
+), parallaxSettings.context);
+assert.equal(parallaxSettings.shellMain.classList.contains("dream-settings-shell"), true);
+assert.equal(parallaxSettings.rootClasses.has("dream-parallax"), true);
+assert.equal(parallaxSettings.nodes.has("codex-dream-parallax-background"), true);
+assert.equal(parallaxSettings.nodes.has("codex-dream-parallax-foreground"), true);
+assert.equal(parallaxSettings.context.window.__CODEX_DREAM_SKIN_STATE__.cleanup(), true);
+assert.equal(parallaxSettings.nodes.has("codex-dream-parallax"), false);
+
 const angelina = createFixture({ shellPresent: true, homePresent: true });
 const angelinaResult = vm.runInNewContext(buildPayload({
   variant: "angelina",
@@ -442,6 +710,15 @@ assert.equal(angelinaChrome.style.left, "310px");
 assert.equal(angelinaChrome.style.width, "910px");
 assert.equal(angelina.context.window.__CODEX_DREAM_SKIN_STATE__.cleanup(), true);
 assert.equal(angelina.rootClasses.has("dream-variant-angelina"), false);
+
+const suggestionHome = createFixture({ shellPresent: true, homeSuggestionsPresent: true });
+vm.runInNewContext(buildPayload({
+  variant: "angelina",
+  appearance: "light",
+}), suggestionHome.context);
+assert.equal(suggestionHome.routeClasses.has("dream-home"), true);
+assert.equal(suggestionHome.shellMain.classList.contains("dream-home-shell"), true);
+assert.equal(suggestionHome.context.window.__CODEX_DREAM_SKIN_STATE__.cleanup(), true);
 
 const midnightAngelina = createFixture({ shellPresent: true, homePresent: true });
 vm.runInNewContext(buildPayload({

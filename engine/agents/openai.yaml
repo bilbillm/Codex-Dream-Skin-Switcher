@@ -1,4 +1,0 @@
-interface:
-  display_name: "Codex Dream Skin"
-  short_description: "Apply and safely restore the bright or midnight Angelina Codex skin"
-  default_prompt: "Use $codex-dream-skin to apply, verify, switch, update, or restore the Angelina Gravity Field desktop skin."

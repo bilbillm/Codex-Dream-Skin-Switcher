@@ -4,7 +4,7 @@
 
 ## 中文
 
-每个可切换主题必须位于独立目录，目录顶层包含 `theme.json` 和本地图片：
+每个可切换主题必须位于独立目录，目录顶层包含 `theme.json` 和本地图片。启动器不再内置主题；主题包可以独立仓库分发，再由 GUI 导入：
 
 ```text
 themes/
@@ -23,20 +23,17 @@ themes/
 | `name` | 是 | string | GUI 显示名称 |
 | `image` | 是 | string | 首页图片相对路径 |
 | `taskImage` | 否 | string | 任务页图片相对路径；省略时复用首页图 |
+| `backgroundImage` / `foregroundImage` | 视差时必填 | string | 视差背景/前景相对路径，必须成对出现 |
 | `appearance` | 否 | string | `light`、`dark` 或 `auto`；默认 `auto` |
 | `skinRevision` | 否 | string | 目标 Dream Skin 修订，例如 `3.1.4-angelina` |
 | `visualRevision` | 否 | number | 主题自身视觉修订号 |
 | `variant` | 否 | string | CSS 变体；本仓库使用 `angelina` |
-| `brandSubtitle` | 否 | string | 首页品牌副标题 |
-| `tagline` | 否 | string | 首页短句 |
-| `projectPrefix` | 否 | string | 项目名称前缀 |
-| `projectLabel` | 否 | string | 项目选择区标签 |
-| `statusText` | 否 | string | 状态行文本 |
-| `quote` | 否 | string | 可选引语 |
+| `brandSubtitle`、`tagline`、`projectPrefix`、`projectLabel`、`statusText`、`quote` | 否 | string | 策展/版本元数据；当前不会自动改变 renderer 文案 |
 | `art.focusX` | 否 | number | 主视觉水平焦点，通常在 `0` 到 `1` |
 | `art.focusY` | 否 | number | 主视觉垂直焦点，通常在 `0` 到 `1` |
 | `art.safeArea` | 否 | string | 文本安全区提示，例如 `left` |
 | `art.taskMode` | 否 | string | 任务图策略，例如 `ambient` |
+| `art.parallax` | 否 | boolean | 启用双层指针视差，要求同时提供两张层图 |
 | `palette.accent` | 否 | string | 主题强调色，建议使用十六进制色值 |
 
 ### 强制安全规则
@@ -63,7 +60,7 @@ themes/
 
 ## English
 
-Each switchable theme lives in its own directory with a top-level `theme.json` and local images.
+Each switchable theme lives in its own directory with a top-level `theme.json` and local images. The launcher no longer bundles themes; theme packs may live in separate repositories and be imported through the GUI.
 
 ### Required fields
 
@@ -74,10 +71,11 @@ Each switchable theme lives in its own directory with a top-level `theme.json` a
 ### Optional fields
 
 - `taskImage`: relative task background; home image is reused when omitted.
+- `backgroundImage` and `foregroundImage`: paired relative parallax layers when `art.parallax` is true.
 - `appearance`: `light`, `dark`, or `auto`.
 - `skinRevision`, `visualRevision`, and `variant`: compatibility metadata.
-- `brandSubtitle`, `tagline`, `projectPrefix`, `projectLabel`, `statusText`, and `quote`: display copy.
-- `art.focusX`, `art.focusY`, `art.safeArea`, and `art.taskMode`: composition hints.
+- `brandSubtitle`, `tagline`, `projectPrefix`, `projectLabel`, `statusText`, and `quote`: curation/version metadata; the current renderer does not automatically render them.
+- `art.focusX`, `art.focusY`, `art.safeArea`, `art.taskMode`, and `art.parallax`: composition hints.
 - `palette.accent`: semantic accent color.
 
 ### Security rules

@@ -36,7 +36,7 @@ try {
     throw 'The saved Codex path is still running but no longer matches a registered Store package. Close it manually before installing.'
   }
   if (Test-DreamSkinTrayActive) {
-    throw 'Exit the Angelina Gravity Field tray before reinstalling so every shortcut can move to the new runtime safely.'
+    throw 'Exit the Codex Dream Skin tray before reinstalling so every shortcut can move to the new runtime safely.'
   }
   $engine = Install-DreamSkinRuntimeEngine -SkillRoot $SkillRoot -StateRoot $StateRoot
   $null = Initialize-DreamSkinThemeStore -SkillRoot $engine.Root -StateRoot $StateRoot
@@ -55,15 +55,15 @@ try {
     $portArgument = if ($PortExplicit) { " -Port $Port" } else { '' }
 
     foreach ($folder in @($desktop, $startMenu)) {
-      $shortcut = $shell.CreateShortcut((Join-Path $folder 'Codex Angelina Gravity Field.lnk'))
+      $shortcut = $shell.CreateShortcut((Join-Path $folder 'Codex Dream Skin.lnk'))
       $shortcut.TargetPath = $powershell
       $shortcut.Arguments = "-NoProfile -ExecutionPolicy RemoteSigned -File `"$startScript`"$portArgument -PromptRestart"
       $shortcut.WorkingDirectory = $engine.Root
-      $shortcut.Description = 'Launch the official ChatGPT Codex app with Angelina Gravity Field'
+      $shortcut.Description = 'Launch the official ChatGPT Codex app with the selected Dream Skin theme'
       $shortcut.Save()
     }
 
-    $restore = $shell.CreateShortcut((Join-Path $desktop 'Codex Angelina Gravity Field - Restore.lnk'))
+    $restore = $shell.CreateShortcut((Join-Path $desktop 'Codex Dream Skin - Restore.lnk'))
     $restore.TargetPath = $powershell
     $restore.Arguments = "-NoProfile -ExecutionPolicy RemoteSigned -File `"$restoreScript`"$portArgument -RestoreBaseTheme -PromptRestart"
     $restore.WorkingDirectory = $engine.Root
@@ -71,11 +71,11 @@ try {
     $restore.Save()
 
     foreach ($folder in @($desktop, $startMenu)) {
-      $tray = $shell.CreateShortcut((Join-Path $folder 'Codex Angelina Gravity Field - Tray.lnk'))
+      $tray = $shell.CreateShortcut((Join-Path $folder 'Codex Dream Skin - Tray.lnk'))
       $tray.TargetPath = $powershell
       $tray.Arguments = "-NoProfile -STA -WindowStyle Hidden -ExecutionPolicy RemoteSigned -File `"$trayScript`"$portArgument"
       $tray.WorkingDirectory = $engine.Root
-      $tray.Description = 'Open Angelina Gravity Field status and theme controls in the system tray'
+      $tray.Description = 'Open Codex Dream Skin status and theme controls in the system tray'
       $tray.Save()
     }
     Start-Process -FilePath $powershell -ArgumentList `
@@ -84,9 +84,9 @@ try {
   }
 
   if ($NoShortcuts) {
-    Write-Host "Angelina Gravity Field installed at $($engine.Root). Run $($engine.Start) to launch it."
+    Write-Host "Codex Dream Skin installed at $($engine.Root). Import and apply a theme before launching it."
   } else {
-    Write-Host 'Angelina Gravity Field installed. The launch shortcut asks before restarting an open Codex window.'
+    Write-Host 'Codex Dream Skin installed. The launch shortcut asks before restarting an open Codex window.'
   }
 } finally {
   Exit-DreamSkinOperationLock -Mutex $operationLock
