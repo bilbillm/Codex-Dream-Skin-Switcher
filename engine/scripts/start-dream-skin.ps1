@@ -28,6 +28,9 @@ try {
   $StderrPath = Join-Path $StateRoot 'injector-error.log'
   $VerifyPath = Join-Path $StateRoot 'verify.log'
   $themePaths = Initialize-DreamSkinThemeStore -SkillRoot (Split-Path -Parent $PSScriptRoot) -StateRoot $StateRoot
+  if (-not (Test-Path -LiteralPath (Join-Path $themePaths.Active 'theme.json') -PathType Leaf)) {
+    throw 'No active theme is installed. Import a theme in Codex 自定义主题 and apply it before launching Codex.'
+  }
   $pauseWasSet = Test-DreamSkinPaused -StateRoot $StateRoot
 
   $previousState = Read-DreamSkinState -Path $StatePath
@@ -282,7 +285,7 @@ try {
     throw $startupError
   }
 
-  Write-Host "Angelina Gravity Field is active on verified loopback port $Port."
+  Write-Host "Codex Dream Skin is active on verified loopback port $Port."
 } finally {
   if ($null -ne $operationLock) { Exit-DreamSkinOperationLock -Mutex $operationLock }
 }

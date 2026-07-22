@@ -1,7 +1,7 @@
 # Build information
 
-- Package: Angelina Gravity Field for ChatGPT Codex
-- Package version: `3.1.4-angelina`
+- Package: Codex Dream Skin runtime for Codex Theme Switcher
+- Package version: `3.1.4`
 - Build date: 2026-07-21
 - Upstream: `Fei-Away/Codex-Dream-Skin`
 - Upstream branch: `main`
@@ -15,8 +15,8 @@
 - `windows/tests/run-tests.ps1`: PASS
 - JavaScript syntax checks: PASS
 - PowerShell parser checks: PASS
-- Bright Angelina, Angelina Midnight Gravity, Arina Hashimoto, and Gothic Void Crusade payload construction: PASS
-- Theme-store four-preset initialization, dual-background save/switch, and dark-preset coverage: PASS
+- External theme payload construction and metadata validation: PASS
+- Empty theme-store initialization, import/save/switch, and dark-theme coverage: PASS
 - Renderer variant, route cleanup, collapsed-sidebar and auxiliary-window coverage: PASS
 - Asset dimensions and metadata limits: PASS
 - Release inventory and secret-pattern scan: PASS

@@ -11,10 +11,12 @@ A Windows GUI for previewing, importing, hot-switching, and launching custom Cod
 [![Release](https://img.shields.io/github/v/release/bilbillm/Codex-Dream-Skin-Switcher?display_name=tag)](https://github.com/bilbillm/Codex-Dream-Skin-Switcher/releases/latest)
 [![License: MIT](https://img.shields.io/badge/code%20license-MIT-green.svg)](LICENSE)
 ![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4)
-![Runtime](https://img.shields.io/badge/Dream%20Skin-3.1.4--angelina-9e2f2e)
+![Runtime](https://img.shields.io/badge/Dream%20Skin-3.1.4-0078D4)
 
 > [!IMPORTANT]
 > This is not an official Codex theme and cannot appear in the official theme settings. It injects CSS and a small amount of decorative DOM through a Chromium DevTools Protocol endpoint bound to the local loopback interface. It does not modify `WindowsApps`, `app.asar`, the official package signature, accounts, conversations, projects, or API configuration.
+
+> This release intentionally ships without bundled themes. Import a local theme pack first; the maintained Angelina light/dark pack lives in [Codex Angelina Themes](https://github.com/bilbillm/Codex-Angelina-Themes). See the Chinese [theme authoring and maintenance guide](主题制作与维护指南.md) for launcher behavior, validation, and release rules.
 
 ## Console overview
 
@@ -57,25 +59,13 @@ This project adds a GUI layer without weakening Dream Skin's process and path ch
 | Shortcuts | Installs one argument-free desktop and Start Menu console entry |
 | Recovery | Leaves the official package untouched; ending the debug session or running restore returns the official appearance |
 
-## Bundled themes
+## Theme packs
 
-### Angelina Gravity Field
+The launcher distributes the GUI, managed runtime, and trusted renderer adapters only. Theme packs are imported separately and cannot carry executable scripts.
 
-- Appearance: light
-- Home image: 2048×1152 PNG
-- Task image: 1280×720 JPEG
-- Visual language: pearl-white technical materials, charcoal information layers, messenger red, and restrained cyan gravity feedback
-- Best for: bright environments and longer reading sessions
-
-### Angelina Midnight Gravity
-
-- Appearance: dark
-- Home image: 2048×1152 PNG
-- Task image: 1280×720 JPEG
-- Visual language: moonlit operations terrace, sparse city lighting, cyan gravity traces, and dark glass surfaces
-- Best for: low-light environments and dark workflows
-
-Both themes include continuous wallpaper, frosted-glass side/right/bottom panels, frosted chat bubbles and in-app secondary menus, a frosted top-right pinned-summary card, a composer-matched white-text multi-question response card, native terminal protection, and no styling of Electron's native `File/Edit/View/Help` menus.
+- [Codex Angelina Themes](https://github.com/bilbillm/Codex-Angelina-Themes) provides the Angelina Gravity Field light theme and Angelina Midnight Gravity dark theme.
+- Choose Import theme in the console and select the directory containing `theme.json`, or copy a theme directory next to the launcher under `themes/` and refresh the catalog.
+- The launcher continues to support `variant: "angelina"` through its trusted adapter, while the images, JSON, provenance, and visual maintenance live in the theme repository.
 
 ## Requirements
 
@@ -342,9 +332,10 @@ The `v0.2.0` release gate includes a zero-warning .NET build, offline theme savi
 Codex-Dream-Skin-Switcher/
 ├─ src/CodexThemeSwitcher/  # WinForms source and hot-switch bridge
 ├─ engine/                   # Dream Skin runtime and tests
-├─ themes/                   # Bundled themes
+├─ themes/                   # External theme import directory; no bundled themes
 ├─ scripts/                  # Build, release, shortcut, verification tools
 ├─ docs/                     # Format, architecture, troubleshooting, screenshots
+├─ 主题制作与维护指南.md       # Theme pack, launcher, validation, release guide
 ├─ README.md                 # Chinese default documentation
 ├─ README.en.md              # English documentation
 ├─ CHANGELOG.md

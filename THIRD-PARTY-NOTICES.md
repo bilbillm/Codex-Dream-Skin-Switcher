@@ -6,12 +6,8 @@ The bundled runtime is derived from [Fei-Away/Codex-Dream-Skin](https://github.c
 
 内置运行引擎派生自 [Fei-Away/Codex-Dream-Skin](https://github.com/Fei-Away/Codex-Dream-Skin) 以及本地 `3.1.4-angelina` 包。上游 MIT 许可证完整保留在 [`engine/LICENSE-UPSTREAM.txt`](engine/LICENSE-UPSTREAM.txt)。
 
-## Angelina theme assets
+## External theme packs
 
-The Angelina images are unofficial fan customization assets. Character identity and visual references relate to Angelina from Arknights. This project is not affiliated with, endorsed by, or sponsored by OpenAI, Hypergryph, Yostar, or Arknights.
+This repository does not distribute character artwork or bundled themes. Theme assets, their provenance, and any fan-work notices are owned by their respective theme-pack repositories. The root MIT license applies only to this launcher's source code and runtime implementation.
 
-The root MIT license applies to this project's source code. It does not grant rights to third-party names, characters, trademarks, or reference artwork. Review [`engine/references/asset-provenance.md`](engine/references/asset-provenance.md) before redistributing the image assets or using them commercially.
-
-安洁莉娜主题图片属于非官方同人定制素材，角色身份与视觉参考涉及《明日方舟》安洁莉娜。本项目与 OpenAI、鹰角网络、悠星或《明日方舟》官方无隶属、授权或赞助关系。
-
-根目录 MIT 许可证适用于本项目源代码，不授予第三方名称、角色、商标或参考美术作品的权利。重新分发图片或进行商业使用前，请阅读 [`engine/references/asset-provenance.md`](engine/references/asset-provenance.md) 并自行确认适用权利。
+本仓库不分发角色图片或内置主题。主题素材、素材来源和同人作品声明由各自的主题包仓库负责。根目录 MIT 许可证仅适用于本启动器的源代码与运行时实现。

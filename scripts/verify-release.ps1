@@ -28,16 +28,19 @@ try {
     '卸载快捷方式.ps1',
     'README.md',
     'README.en.md',
+    '主题制作与维护指南.md',
     'engine\scripts\start-dream-skin.ps1',
     'engine\scripts\injector.mjs',
-    'themes\Angelina Gravity Field\theme.json',
-    'themes\Angelina Midnight Gravity\theme.json'
+    'themes\README.md'
   )
   foreach ($name in $required) {
     if ($names -cnotcontains $name) { throw "Release ZIP is missing: $name" }
   }
   foreach ($name in @('CodexThemeSwitcher.exe', 'Codex自定义主题启动器.exe')) {
     if ($names -ccontains $name) { throw "Release ZIP contains obsolete executable: $name" }
+  }
+  if ($names | Where-Object { $_ -match '^themes\\[^\\]+\\theme\.json$' }) {
+    throw 'Release ZIP contains a bundled theme package; distribute themes separately.'
   }
 } finally {
   $archive.Dispose()

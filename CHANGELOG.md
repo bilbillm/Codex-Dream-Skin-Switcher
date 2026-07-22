@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. Versions follow Semantic Versioning.
 
+## [Unreleased]
+
+### Changed
+
+- Split bundled Angelina assets into the independent `Codex-Angelina-Themes` theme-pack repository.
+- The launcher now starts without a default theme and requires the user to import and apply a theme first.
+- Updated the managed runtime, release inventory, installer text, documentation, and regression suite for external theme packs.
+
+### Added
+
+- Added a theme authoring and maintenance guide that documents renderer adapters, launcher behavior, validation, and release rules.
+
 ## [0.2.0] - 2026-07-22
 
 ### Changed

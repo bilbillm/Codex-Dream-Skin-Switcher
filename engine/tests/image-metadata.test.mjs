@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -12,8 +13,15 @@ import {
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const windowsRoot = path.resolve(here, "..");
-const featured = await fs.readFile(path.join(windowsRoot, "assets", "dream-reference.jpg"));
 const helper = path.join(windowsRoot, "scripts", "image-metadata.mjs");
+const featured = Buffer.from([
+  0xff, 0xd8, 0xff, 0xc0, 0x00, 0x11, 0x08,
+  0x05, 0xa0, 0x0a, 0x00, 0x03,
+  0x01, 0x11, 0x00, 0x02, 0x11, 0x00, 0x03, 0x11, 0x00,
+]);
+const fixtureDirectory = await fs.mkdtemp(path.join(os.tmpdir(), "codex-dream-skin-image-metadata-"));
+const fixturePath = path.join(fixtureDirectory, "featured.jpg");
+await fs.writeFile(fixturePath, featured);
 
 assert.deepEqual(readImageMetadata(featured, ".jpg"), {
   width: 2560,
@@ -24,7 +32,7 @@ assert.deepEqual(readImageMetadata(featured, ".jpg"), {
   taskMode: "ambient",
 });
 
-const cli = spawnSync(process.execPath, [helper, "--check", path.join(windowsRoot, "assets", "dream-reference.jpg")], {
+const cli = spawnSync(process.execPath, [helper, "--check", fixturePath], {
   encoding: "utf8",
 });
 assert.equal(cli.status, 0);
@@ -55,5 +63,7 @@ assert.equal(readImageMetadata(oversizedPngHeader, ".png"), null);
 const malformedJpeg = Buffer.from(featured.subarray(0, 64));
 malformedJpeg[0] = 0;
 assert.equal(readImageMetadata(malformedJpeg, ".jpg"), null);
+
+await fs.rm(fixtureDirectory, { recursive: true, force: true });
 
 console.log("PASS: Windows injector reads strict image dimensions before building the payload.");

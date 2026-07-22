@@ -60,7 +60,7 @@ Copy-Item -LiteralPath (Join-Path $repoRoot 'scripts\install-shortcuts.ps1') `
   -Destination (Join-Path $stagingRoot '安装快捷方式.ps1')
 Copy-Item -LiteralPath (Join-Path $repoRoot 'scripts\uninstall-shortcuts.ps1') `
   -Destination (Join-Path $stagingRoot '卸载快捷方式.ps1')
-foreach ($name in @('README.md', 'README.en.md', 'LICENSE', 'THIRD-PARTY-NOTICES.md', 'CHANGELOG.md')) {
+foreach ($name in @('README.md', 'README.en.md', '主题制作与维护指南.md', 'LICENSE', 'THIRD-PARTY-NOTICES.md', 'CHANGELOG.md')) {
   Copy-Item -LiteralPath (Join-Path $repoRoot $name) -Destination $stagingRoot
 }
 

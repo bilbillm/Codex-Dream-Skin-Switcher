@@ -172,11 +172,38 @@ function Read-DreamSkinTheme {
     }
     Assert-DreamSkinImageFile -Path $taskImagePath -SkipImageMetadata:$SkipImageMetadata
   }
+  $backgroundImagePath = $null
+  if ($theme.PSObject.Properties.Name -contains 'backgroundImage' -and $theme.backgroundImage) {
+    $backgroundImage = "$($theme.backgroundImage)"
+    if ([System.IO.Path]::IsPathRooted($backgroundImage)) { throw 'Theme parallax background image path must be relative.' }
+    $backgroundImagePath = [System.IO.Path]::GetFullPath((Join-Path $directory $backgroundImage))
+    if (-not (Test-DreamSkinThemePathWithin -Path $backgroundImagePath -Root $directory) -or
+      -not (Test-Path -LiteralPath $backgroundImagePath -PathType Leaf)) {
+      throw 'Theme parallax background image must remain inside its theme directory and exist.'
+    }
+    Assert-DreamSkinImageFile -Path $backgroundImagePath -SkipImageMetadata:$SkipImageMetadata
+  }
+  $foregroundImagePath = $null
+  if ($theme.PSObject.Properties.Name -contains 'foregroundImage' -and $theme.foregroundImage) {
+    $foregroundImage = "$($theme.foregroundImage)"
+    if ([System.IO.Path]::IsPathRooted($foregroundImage)) { throw 'Theme parallax foreground image path must be relative.' }
+    $foregroundImagePath = [System.IO.Path]::GetFullPath((Join-Path $directory $foregroundImage))
+    if (-not (Test-DreamSkinThemePathWithin -Path $foregroundImagePath -Root $directory) -or
+      -not (Test-Path -LiteralPath $foregroundImagePath -PathType Leaf)) {
+      throw 'Theme parallax foreground image must remain inside its theme directory and exist.'
+    }
+    Assert-DreamSkinImageFile -Path $foregroundImagePath -SkipImageMetadata:$SkipImageMetadata
+  }
+  if ($theme.art.parallax -eq $true -and (-not $backgroundImagePath -or -not $foregroundImagePath)) {
+    throw 'Parallax themes require both backgroundImage and foregroundImage.'
+  }
   return [pscustomobject]@{
     Directory = $directory
     ThemePath = $themePath
     ImagePath = $imagePath
     TaskImagePath = $taskImagePath
+    BackgroundImagePath = $backgroundImagePath
+    ForegroundImagePath = $foregroundImagePath
     Theme = $theme
   }
 }
@@ -204,110 +231,6 @@ function Initialize-DreamSkinThemeStore {
   foreach ($directory in @($paths.Root, $paths.Active, $paths.Saved, $paths.Images)) {
     Ensure-DreamSkinManagedDirectory -Path $directory -Root $paths.Root
   }
-  $assetRoot = Join-Path $SkillRoot 'assets'
-  $assetImage = Join-Path $assetRoot 'angelina-hero.png'
-  Assert-DreamSkinImageFile -Path $assetImage
-  $assetTaskImage = Join-Path $assetRoot 'angelina-thread-bg.jpg'
-  Assert-DreamSkinImageFile -Path $assetTaskImage
-  $activeTheme = Join-Path $paths.Active 'theme.json'
-  Assert-DreamSkinNoReparseComponents -Path $activeTheme
-  if (-not (Test-Path -LiteralPath $activeTheme -PathType Leaf)) {
-    Ensure-DreamSkinManagedDirectory -Path $paths.Active -Root $paths.Root
-    Assert-DreamSkinNoReparseComponents -Path (Join-Path $paths.Active 'angelina-hero.png')
-    $activeImage = Join-Path $paths.Active 'angelina-hero.png'
-    Copy-Item -LiteralPath $assetImage `
-      -Destination $activeImage -Force
-    Assert-DreamSkinNoReparseComponents -Path $activeImage
-    Assert-DreamSkinImageFile -Path $activeImage
-    $activeTaskImage = Join-Path $paths.Active 'angelina-thread-bg.jpg'
-    Copy-Item -LiteralPath $assetTaskImage -Destination $activeTaskImage -Force
-    Assert-DreamSkinNoReparseComponents -Path $activeTaskImage
-    Assert-DreamSkinImageFile -Path $activeTaskImage
-    $imageArchive = Join-Path $paths.Images 'angelina-hero.png'
-    Assert-DreamSkinNoReparseComponents -Path $imageArchive
-    Copy-Item -LiteralPath $assetImage `
-      -Destination $imageArchive -Force
-    Assert-DreamSkinNoReparseComponents -Path $imageArchive
-    Assert-DreamSkinImageFile -Path $imageArchive
-    $taskImageArchive = Join-Path $paths.Images 'angelina-thread-bg.jpg'
-    Copy-Item -LiteralPath $assetTaskImage -Destination $taskImageArchive -Force
-    Assert-DreamSkinNoReparseComponents -Path $taskImageArchive
-    Assert-DreamSkinImageFile -Path $taskImageArchive
-    Assert-DreamSkinNoReparseComponents -Path $activeTheme
-    Copy-Item -LiteralPath (Join-Path $assetRoot 'theme.json') -Destination $activeTheme -Force
-  }
-  $retiredPresetDirectory = Join-Path $paths.Saved 'preset-romantic-rose'
-  Assert-DreamSkinNoReparseComponents -Path $retiredPresetDirectory
-  if (Test-Path -LiteralPath $retiredPresetDirectory) {
-    Remove-Item -LiteralPath $retiredPresetDirectory -Recurse -Force
-  }
-  # Angelina is the package default and remains available after switching themes.
-  $angelinaPresetDirectory = Join-Path $paths.Saved 'preset-angelina-gravity-field'
-  $angelinaPresetTheme = Join-Path $angelinaPresetDirectory 'theme.json'
-  Assert-DreamSkinNoReparseComponents -Path $angelinaPresetDirectory
-  if (-not (Test-Path -LiteralPath $angelinaPresetTheme -PathType Leaf)) {
-    Ensure-DreamSkinManagedDirectory -Path $angelinaPresetDirectory -Root $paths.Root
-    Copy-Item -LiteralPath $assetImage -Destination (Join-Path $angelinaPresetDirectory 'angelina-hero.png') -Force
-    Copy-Item -LiteralPath $assetTaskImage -Destination (Join-Path $angelinaPresetDirectory 'angelina-thread-bg.jpg') -Force
-    Copy-Item -LiteralPath (Join-Path $assetRoot 'theme.json') -Destination $angelinaPresetTheme -Force
-  }
-  # The dark Angelina variant is a separate dual-background preset so the
-  # bright default and its night composition remain independently selectable.
-  $midnightSource = Join-Path $SkillRoot 'presets\preset-angelina-midnight-gravity'
-  $midnightDirectory = Join-Path $paths.Saved 'preset-angelina-midnight-gravity'
-  $midnightTheme = Join-Path $midnightDirectory 'theme.json'
-  $midnightSourceTheme = Join-Path $midnightSource 'theme.json'
-  $midnightSourceImage = Join-Path $midnightSource 'background.png'
-  $midnightSourceTaskImage = Join-Path $midnightSource 'task-background.jpg'
-  Assert-DreamSkinNoReparseComponents -Path $midnightDirectory
-  Assert-DreamSkinNoReparseComponents -Path $midnightTheme
-  if (-not (Test-Path -LiteralPath $midnightTheme -PathType Leaf)) {
-    Ensure-DreamSkinManagedDirectory -Path $midnightDirectory -Root $paths.Root
-    Assert-DreamSkinImageFile -Path $midnightSourceImage
-    Assert-DreamSkinImageFile -Path $midnightSourceTaskImage
-    Copy-Item -LiteralPath $midnightSourceImage -Destination (Join-Path $midnightDirectory 'background.png') -Force
-    Copy-Item -LiteralPath $midnightSourceTaskImage -Destination (Join-Path $midnightDirectory 'task-background.jpg') -Force
-    Copy-Item -LiteralPath $midnightSourceTheme -Destination $midnightTheme -Force
-  }
-  # Keep the upstream Arina Hashimoto preset in the saved-theme catalog.
-  $arinaSource = Join-Path $SkillRoot 'presets\preset-arina-hashimoto'
-  $presetDirectory = Join-Path $paths.Saved 'preset-arina-hashimoto'
-  $presetTheme = Join-Path $presetDirectory 'theme.json'
-  Assert-DreamSkinNoReparseComponents -Path $presetDirectory
-  Assert-DreamSkinNoReparseComponents -Path $presetTheme
-  if (-not (Test-Path -LiteralPath $presetTheme -PathType Leaf)) {
-    Ensure-DreamSkinManagedDirectory -Path $presetDirectory -Root $paths.Root
-    $presetImage = Join-Path $presetDirectory 'background.jpg'
-    Assert-DreamSkinNoReparseComponents -Path $presetImage
-    Copy-Item -LiteralPath (Join-Path $arinaSource 'background.jpg') `
-      -Destination $presetImage -Force
-    Assert-DreamSkinNoReparseComponents -Path $presetImage
-    Assert-DreamSkinImageFile -Path $presetImage
-    Assert-DreamSkinNoReparseComponents -Path $presetTheme
-    Copy-Item -LiteralPath (Join-Path $arinaSource 'theme.json') -Destination $presetTheme -Force
-  }
-  # Bundled Gothic Void Crusade (same pack as macOS presets/).
-  $gothicSource = Join-Path $SkillRoot 'presets\preset-gothic-void-crusade'
-  $gothicDirectory = Join-Path $paths.Saved 'preset-gothic-void-crusade'
-  $gothicTheme = Join-Path $gothicDirectory 'theme.json'
-  $gothicSourceTheme = Join-Path $gothicSource 'theme.json'
-  $gothicSourceImage = Join-Path $gothicSource 'background.jpg'
-  Assert-DreamSkinNoReparseComponents -Path $gothicDirectory
-  Assert-DreamSkinNoReparseComponents -Path $gothicTheme
-  if ((Test-Path -LiteralPath $gothicSourceTheme -PathType Leaf) -and
-    (Test-Path -LiteralPath $gothicSourceImage -PathType Leaf) -and
-    -not (Test-Path -LiteralPath $gothicTheme -PathType Leaf)) {
-    Ensure-DreamSkinManagedDirectory -Path $gothicDirectory -Root $paths.Root
-    $gothicImage = Join-Path $gothicDirectory 'background.jpg'
-    Assert-DreamSkinNoReparseComponents -Path $gothicImage
-    Assert-DreamSkinImageFile -Path $gothicSourceImage
-    Copy-Item -LiteralPath $gothicSourceImage -Destination $gothicImage -Force
-    Assert-DreamSkinNoReparseComponents -Path $gothicImage
-    Assert-DreamSkinImageFile -Path $gothicImage
-    Assert-DreamSkinNoReparseComponents -Path $gothicTheme
-    Copy-Item -LiteralPath $gothicSourceTheme -Destination $gothicTheme -Force
-  }
-  $null = Read-DreamSkinTheme -ThemeDirectory $paths.Active
   return $paths
 }
 
@@ -321,6 +244,8 @@ function Set-DreamSkinActiveTheme {
   param(
     [Parameter(Mandatory = $true)][string]$ImagePath,
     [AllowNull()][string]$TaskImagePath,
+    [AllowNull()][string]$BackgroundImagePath,
+    [AllowNull()][string]$ForegroundImagePath,
     [AllowNull()][object]$Theme,
     [string]$Name,
     [string]$StateRoot = (Join-Path $env:LOCALAPPDATA 'CodexDreamSkin')
@@ -334,10 +259,14 @@ function Set-DreamSkinActiveTheme {
   $extension = [System.IO.Path]::GetExtension($source).ToLowerInvariant()
   $oldImage = $null
   $oldTaskImage = $null
+  $oldBackgroundImage = $null
+  $oldForegroundImage = $null
   try {
     $oldTheme = Read-DreamSkinTheme -ThemeDirectory $paths.Active
     $oldImage = $oldTheme.ImagePath
     $oldTaskImage = $oldTheme.TaskImagePath
+    $oldBackgroundImage = $oldTheme.BackgroundImagePath
+    $oldForegroundImage = $oldTheme.ForegroundImagePath
   } catch {}
   if ($null -eq $Theme) {
     $Theme = [pscustomobject]@{
@@ -350,6 +279,8 @@ function Set-DreamSkinActiveTheme {
   }
   $imageName = New-DreamSkinThemeImageName -Extension $extension
   $target = Join-Path $paths.Active $imageName
+  $backgroundTarget = $null
+  $foregroundTarget = $null
   $temporary = Join-Path $paths.Active ('.dream-tmp-' + [guid]::NewGuid().ToString('N') + $extension)
   try {
     Assert-DreamSkinNoReparseComponents -Path $target
@@ -374,6 +305,32 @@ function Set-DreamSkinActiveTheme {
     } elseif ($Theme.PSObject.Properties.Name -contains 'taskImage') {
       $Theme.PSObject.Properties.Remove('taskImage')
     }
+    if ($BackgroundImagePath) {
+      $backgroundSource = [System.IO.Path]::GetFullPath($BackgroundImagePath)
+      Assert-DreamSkinImageFile -Path $backgroundSource
+      $backgroundExtension = [System.IO.Path]::GetExtension($backgroundSource).ToLowerInvariant()
+      $backgroundImageName = New-DreamSkinThemeImageName -Extension $backgroundExtension
+      $backgroundTarget = Join-Path $paths.Active $backgroundImageName
+      Copy-Item -LiteralPath $backgroundSource -Destination $backgroundTarget -Force
+      Assert-DreamSkinNoReparseComponents -Path $backgroundTarget
+      Assert-DreamSkinImageFile -Path $backgroundTarget
+      $Theme | Add-Member -NotePropertyName backgroundImage -NotePropertyValue $backgroundImageName -Force
+    } elseif ($Theme.PSObject.Properties.Name -contains 'backgroundImage') {
+      $Theme.PSObject.Properties.Remove('backgroundImage')
+    }
+    if ($ForegroundImagePath) {
+      $foregroundSource = [System.IO.Path]::GetFullPath($ForegroundImagePath)
+      Assert-DreamSkinImageFile -Path $foregroundSource
+      $foregroundExtension = [System.IO.Path]::GetExtension($foregroundSource).ToLowerInvariant()
+      $foregroundImageName = New-DreamSkinThemeImageName -Extension $foregroundExtension
+      $foregroundTarget = Join-Path $paths.Active $foregroundImageName
+      Copy-Item -LiteralPath $foregroundSource -Destination $foregroundTarget -Force
+      Assert-DreamSkinNoReparseComponents -Path $foregroundTarget
+      Assert-DreamSkinImageFile -Path $foregroundTarget
+      $Theme | Add-Member -NotePropertyName foregroundImage -NotePropertyValue $foregroundImageName -Force
+    } elseif ($Theme.PSObject.Properties.Name -contains 'foregroundImage') {
+      $Theme.PSObject.Properties.Remove('foregroundImage')
+    }
     if ($Name) { $Theme | Add-Member -NotePropertyName name -NotePropertyValue $Name -Force }
     if (-not $Theme.id) { $Theme | Add-Member -NotePropertyName id -NotePropertyValue 'custom' -Force }
     if (-not $Theme.appearance) { $Theme | Add-Member -NotePropertyName appearance -NotePropertyValue 'auto' -Force }
@@ -397,6 +354,14 @@ function Set-DreamSkinActiveTheme {
     (-not $TaskImagePath -or ([System.IO.Path]::GetFullPath($oldTaskImage) -ine [System.IO.Path]::GetFullPath($TaskImagePath)))) {
     Remove-Item -LiteralPath $oldTaskImage -Force -ErrorAction SilentlyContinue
   }
+  if ($oldBackgroundImage -and (Test-DreamSkinThemePathWithin -Path $oldBackgroundImage -Root $paths.Active) -and
+    (-not $BackgroundImagePath -or ([System.IO.Path]::GetFullPath($oldBackgroundImage) -ine [System.IO.Path]::GetFullPath($BackgroundImagePath)))) {
+    Remove-Item -LiteralPath $oldBackgroundImage -Force -ErrorAction SilentlyContinue
+  }
+  if ($oldForegroundImage -and (Test-DreamSkinThemePathWithin -Path $oldForegroundImage -Root $paths.Active) -and
+    (-not $ForegroundImagePath -or ([System.IO.Path]::GetFullPath($oldForegroundImage) -ine [System.IO.Path]::GetFullPath($ForegroundImagePath)))) {
+    Remove-Item -LiteralPath $oldForegroundImage -Force -ErrorAction SilentlyContinue
+  }
   $imageArchive = Join-Path $paths.Images $imageName
   Assert-DreamSkinNoReparseComponents -Path $imageArchive
   Copy-Item -LiteralPath $target -Destination $imageArchive -Force
@@ -407,6 +372,18 @@ function Set-DreamSkinActiveTheme {
     Copy-Item -LiteralPath $taskTarget -Destination $taskArchive -Force
     Assert-DreamSkinNoReparseComponents -Path $taskArchive
     Assert-DreamSkinImageFile -Path $taskArchive
+  }
+  if ($backgroundTarget) {
+    $backgroundArchive = Join-Path $paths.Images $backgroundImageName
+    Copy-Item -LiteralPath $backgroundTarget -Destination $backgroundArchive -Force
+    Assert-DreamSkinNoReparseComponents -Path $backgroundArchive
+    Assert-DreamSkinImageFile -Path $backgroundArchive
+  }
+  if ($foregroundTarget) {
+    $foregroundArchive = Join-Path $paths.Images $foregroundImageName
+    Copy-Item -LiteralPath $foregroundTarget -Destination $foregroundArchive -Force
+    Assert-DreamSkinNoReparseComponents -Path $foregroundArchive
+    Assert-DreamSkinImageFile -Path $foregroundArchive
   }
   return Read-DreamSkinTheme -ThemeDirectory $paths.Active
 }
@@ -446,6 +423,24 @@ function Save-DreamSkinCurrentTheme {
     Assert-DreamSkinNoReparseComponents -Path $destinationTaskImage
     Assert-DreamSkinImageFile -Path $destinationTaskImage
     $theme | Add-Member -NotePropertyName taskImage -NotePropertyValue $taskImageName -Force
+  }
+  if ($active.BackgroundImagePath) {
+    $backgroundExtension = [System.IO.Path]::GetExtension($active.BackgroundImagePath).ToLowerInvariant()
+    $backgroundImageName = 'parallax-background' + $backgroundExtension
+    $destinationBackgroundImage = Join-Path $destination $backgroundImageName
+    Copy-Item -LiteralPath $active.BackgroundImagePath -Destination $destinationBackgroundImage -Force
+    Assert-DreamSkinNoReparseComponents -Path $destinationBackgroundImage
+    Assert-DreamSkinImageFile -Path $destinationBackgroundImage
+    $theme | Add-Member -NotePropertyName backgroundImage -NotePropertyValue $backgroundImageName -Force
+  }
+  if ($active.ForegroundImagePath) {
+    $foregroundExtension = [System.IO.Path]::GetExtension($active.ForegroundImagePath).ToLowerInvariant()
+    $foregroundImageName = 'parallax-foreground' + $foregroundExtension
+    $destinationForegroundImage = Join-Path $destination $foregroundImageName
+    Copy-Item -LiteralPath $active.ForegroundImagePath -Destination $destinationForegroundImage -Force
+    Assert-DreamSkinNoReparseComponents -Path $destinationForegroundImage
+    Assert-DreamSkinImageFile -Path $destinationForegroundImage
+    $theme | Add-Member -NotePropertyName foregroundImage -NotePropertyValue $foregroundImageName -Force
   }
   Write-DreamSkinTheme -ThemeDirectory $destination -Theme $theme
   return Read-DreamSkinTheme -ThemeDirectory $destination
@@ -489,6 +484,7 @@ function Use-DreamSkinSavedTheme {
   $saved = Read-DreamSkinTheme -ThemeDirectory $directory
   $theme = $saved.Theme | ConvertTo-Json -Depth 8 | ConvertFrom-Json
   return Set-DreamSkinActiveTheme -ImagePath $saved.ImagePath -TaskImagePath $saved.TaskImagePath `
+    -BackgroundImagePath $saved.BackgroundImagePath -ForegroundImagePath $saved.ForegroundImagePath `
     -Theme $theme -StateRoot $StateRoot
 }
 
